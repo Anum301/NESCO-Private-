@@ -8,29 +8,31 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="NESCO Distributors - Business Dashboard", layout="wide", page_icon="🏢")
 
-# REMOVE keyboard_double PERMANENTLY - FORCE HIDE WITH JS, KEEP ONLY OUR >>
+# >> IS NOW A REAL BUTTON - CLICK TO COLLAPSE / EXPAND SIDEBAR, keyboard_double STAYS HIDDEN
 components.html("""
 <script>
-function hideKeyboardBtn() {
-  const allBtns = window.parent.document.querySelectorAll('button');
+function setupToggle() {
+  const doc = window.parent.document;
+  const realBtn = doc.querySelector('[data-testid="stSidebarCollapsedControl"] button') || doc.querySelector('[data-testid="collapsedControl"] button');
+  if (realBtn) {
+    realBtn.style.opacity = '0';
+    realBtn.style.position = 'absolute';
+    realBtn.style.pointerEvents = 'auto';
+  }
+  const allBtns = doc.querySelectorAll('button');
   allBtns.forEach(btn => {
-    const txt = btn.innerText || btn.textContent || '';
-    const label = btn.getAttribute('aria-label') || '';
-    if (txt.includes('keyboard_double') || label.toLowerCase().includes('sidebar') || label.toLowerCase().includes('collapse') || label.toLowerCase().includes('close')) {
-      if (!btn.innerHTML.includes('&gt;&gt;')) {
-        btn.style.display = 'none !important';
-        btn.style.visibility = 'hidden !important';
-        btn.style.opacity = '0 !important';
-        btn.style.width = '0px !important';
-        btn.style.height = '0px !important';
-      }
+    if ((btn.innerText || '').trim() === '>>' && !btn.dataset.nescoToggle) {
+      btn.dataset.nescoToggle = '1';
+      btn.style.cursor = 'pointer';
+      btn.onclick = function() {
+        const real = doc.querySelector('[data-testid="stSidebarCollapsedControl"] button') || doc.querySelector('[data-testid="collapsedControl"] button') || doc.querySelector('button[aria-label="Close sidebar"]') || doc.querySelector('button[aria-label="Open sidebar"]');
+        if (real) real.click();
+      };
     }
   });
-  const collapsed = window.parent.document.querySelectorAll('[data-testid="stSidebarCollapsedControl"], [data-testid="collapsedControl"]');
-  collapsed.forEach(el => { el.style.display = 'none !important'; });
 }
-setInterval(hideKeyboardBtn, 500);
-hideKeyboardBtn();
+setInterval(setupToggle, 500);
+setupToggle();
 </script>
 """, height=0)
 
@@ -71,13 +73,11 @@ section[data-testid="stSidebar"] button:hover { background: #F7F1EB !important; 
 section[data-testid="stSidebar"] button:hover * { color: #714329 !important; }
 .nesco-title { color: #FFFFFF !important; font-weight: 900 !important; font-family: 'Times New Roman', Times, serif !important; }
 .nesco-sub { color: #D0B9A7 !important; font-family: 'Times New Roman', Times, serif !important; }
-/* REMOVE keyboard_double PERMANENTLY */
-[data-testid="stSidebarCollapsedControl"] { display: none !important; visibility: hidden !important; }
-[data-testid="collapsedControl"] { display: none !important; visibility: hidden !important; }
+/* REMOVE keyboard_double TEXT - KEEP BUTTON ALIVE SO >> CAN CLICK IT */
+[data-testid="stSidebarCollapsedControl"] { opacity: 0 !important; width: 0px !important; overflow: hidden !important; pointer-events: auto !important; }
+[data-testid="collapsedControl"] { opacity: 0 !important; width: 0px !important; overflow: hidden !important; pointer-events: auto !important; }
 div[data-testid="stSidebarHeader"] { display: none !important; }
-section[data-testid="stSidebar"] > div:first-child > div:first-child { display: none !important; }
-button[kind="header"] { display: none !important; }
-header[data-testid="stHeader"] { display: none !important; }
+button[kind="header"] { opacity: 0 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -221,8 +221,10 @@ def calc_sales_enriched(sales, avg_map, prods):
     df["payment_status"] = df.apply(lambda r: "Paid" if r["outstanding"] <= 0 else ("Partial" if r["received"]>0 else "Unpaid"), axis=1)
     return df
 
-# --- SIDEBAR: >> IN RIGHT CORNER + NESCO WHITE BOLD ---
-st.sidebar.markdown("<div style='text-align:right; font-size:22px; color:#714329; font-weight:900; font-family: Times New Roman, Times, serif; margin-bottom:8px;'>&gt;&gt;</div>", unsafe_allow_html=True)
+# --- SIDEBAR: >> BUTTON IN RIGHT CORNER - CLICK TO HIDE / SHOW SIDEBAR + NESCO WHITE BOLD ---
+c_left, c_right = st.sidebar.columns([5, 1])
+with c_right:
+    st.button(">>", key="nesco_toggle_sidebar")
 st.sidebar.markdown("""
 <div style='background:#714329; padding:14px 12px; border-radius:14px; text-align:center; font-family: Times New Roman, Times, serif;'>
     <div style='font-size:36px;'>🏢</div>
