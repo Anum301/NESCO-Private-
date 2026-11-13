@@ -7,38 +7,40 @@ import io
 
 st.set_page_config(page_title="NESCO Distributors - Business Dashboard", layout="wide", page_icon="🏢")
 
-# --- PALETTE + HOVER GLOW + SIDEBAR FIX - LIGHT BROWN + VISIBLE TEXT ---
+# --- FONT: TIMES NEW ROMAN FOR WHOLE WEBSITE + PALETTE + HOVER GLOW + SIDEBAR FIX ---
 st.markdown("""
 <style>
+* { font-family: 'Times New Roman', Times, serif !important; }
 .stApp { background: #F7F1EB; }
-h1,h2,h3 { color: #714329 !important; }
-.blue-bar { background: #714329; color: #FFFFFF !important; padding: 13px 16px; border-radius: 12px; font-weight: 800; font-size: 18px; margin: 16px 0 10px 0; transition: all 0.3s ease; }
+h1,h2,h3 { color: #714329 !important; font-family: 'Times New Roman', Times, serif !important; }
+.blue-bar { background: #714329; color: #FFFFFF !important; padding: 13px 16px; border-radius: 12px; font-weight: 800; font-size: 20px; margin: 16px 0 10px 0; transition: all 0.3s ease; font-family: 'Times New Roman', Times, serif !important; }
 .blue-bar:hover { box-shadow: 0 8px 24px rgba(113,67,41,0.35); transform: translateY(-2px); }
-.blue-bar * { color: white !important; }
-.sub-bar { background: #B08463; color: white !important; padding: 10px 14px; border-radius: 10px; font-weight: 700; font-size: 15px; margin: 14px 0 8px 0; transition: all 0.3s ease; }
+.blue-bar * { color: white !important; font-family: 'Times New Roman', Times, serif !important; }
+.sub-bar { background: #B08463; color: white !important; padding: 10px 14px; border-radius: 10px; font-weight: 700; font-size: 17px; margin: 14px 0 8px 0; transition: all 0.3s ease; font-family: 'Times New Roman', Times, serif !important; }
 .sub-bar:hover { box-shadow: 0 8px 20px rgba(176,132,99,0.4); transform: translateY(-1px); }
-.sub-bar * { color: white !important; }
-.finance-box { background: #FFFFFF; border: 1.5px solid #B5A192; border-radius: 14px; padding: 14px; text-align: center; box-shadow: 0 2px 12px rgba(113,67,41,0.08); transition: all 0.3s ease; cursor: pointer; }
+.sub-bar * { color: white !important; font-family: 'Times New Roman', Times, serif !important; }
+.finance-box { background: #FFFFFF; border: 1.5px solid #B5A192; border-radius: 14px; padding: 14px; text-align: center; box-shadow: 0 2px 12px rgba(113,67,41,0.08); transition: all 0.3s ease; cursor: pointer; font-family: 'Times New Roman', Times, serif !important; }
 .finance-box:hover { border: 2.5px solid #714329 !important; box-shadow: 0 12px 28px rgba(113,67,41,0.30), 0 0 0 4px rgba(208,185,167,0.35) !important; transform: translateY(-4px) scale(1.03); background: #FFFEFD !important; backdrop-filter: blur(4px); }
-.finance-box .label { color: #714329 !important; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
-.finance-box .value { color: #714329 !important; font-size: 26px; font-weight: 900; }
+.finance-box .label { color: #714329 !important; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; font-family: 'Times New Roman', Times, serif !important; }
+.finance-box .value { color: #714329 !important; font-size: 26px; font-weight: 900; font-family: 'Times New Roman', Times, serif !important; }
 .finance-box:hover .value { color: #B08463 !important; }
-.info-box { background: #D0B9A7; border: 1px solid #B5A192; border-radius: 12px; padding: 14px 16px; color: #2B1A12 !important; transition: all 0.3s ease; cursor: pointer; }
+.info-box { background: #D0B9A7; border: 1px solid #B5A192; border-radius: 12px; padding: 14px 16px; color: #2B1A12 !important; transition: all 0.3s ease; cursor: pointer; font-family: 'Times New Roman', Times, serif !important; font-size: 16px; }
 .info-box:hover { border: 2px solid #714329 !important; box-shadow: 0 10px 24px rgba(113,67,41,0.25) !important; transform: translateY(-2px); backdrop-filter: blur(3px); background: #E8D9CC !important; }
-.info-box * { color: #2B1A12 !important; }
-.stButton>button { background: #714329 !important; color: white !important; font-weight: 800 !important; border-radius: 12px !important; border: none !important; transition: all 0.3s ease !important; }
+.info-box * { color: #2B1A12 !important; font-family: 'Times New Roman', Times, serif !important; }
+.stButton>button { background: #714329 !important; color: white !important; font-weight: 800 !important; border-radius: 12px !important; border: none !important; transition: all 0.3s ease !important; font-family: 'Times New Roman', Times, serif !important; font-size: 16px !important; }
 .stButton>button:hover { background: #B08463 !important; box-shadow: 0 8px 20px rgba(113,67,41,0.35) !important; transform: translateY(-2px) scale(1.02) !important; border: 2px solid #714329 !important; }
-.stDownloadButton>button { background: #B08463 !important; color: white !important; font-weight: 800 !important; border-radius: 12px !important; border: none !important; transition: all 0.3s ease !important; }
+.stDownloadButton>button { background: #B08463 !important; color: white !important; font-weight: 800 !important; border-radius: 12px !important; border: none !important; transition: all 0.3s ease !important; font-family: 'Times New Roman', Times, serif !important; font-size: 16px !important; }
 .stDownloadButton>button:hover { background: #714329 !important; box-shadow: 0 8px 20px rgba(113,67,41,0.35) !important; transform: translateY(-2px) scale(1.02) !important; }
+.stTextInput input, .stNumberInput input, .stSelectbox, .stTextArea textarea { font-family: 'Times New Roman', Times, serif !important; font-size: 16px !important; }
 .stTextInput input:hover, .stNumberInput input:hover { border-color: #714329 !important; box-shadow: 0 0 0 3px rgba(208,185,167,0.4) !important; }
 /* SIDEBAR - LIGHT BROWN + VISIBLE TEXT - FIXED */
 section[data-testid="stSidebar"] { background: #B9937B !important; }
 section[data-testid="stSidebar"] > div { background: #B9937B !important; }
-section[data-testid="stSidebar"] .sidebar-title { color: #714329 !important; font-weight: 900 !important; letter-spacing: 1px; font-size: 14px !important; margin: 18px 0 8px 0 !important; }
-section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span, section[data-testid="stSidebar"] div { color: #3A2115 !important; }
-section[data-testid="stSidebar"] button { background: #FFFFFF !important; color: #714329 !important; font-weight: 800 !important; border-radius: 12px !important; width: 100% !important; border: 1.5px solid #D0B9A7 !important; }
-section[data-testid="stSidebar"] button * { color: #714329 !important; }
-section[data-testid="stSidebar"] button p, section[data-testid="stSidebar"] button span { color: #714329 !important; }
+section[data-testid="stSidebar"] .sidebar-title { color: #714329 !important; font-weight: 900 !important; letter-spacing: 1px; font-size: 15px !important; margin: 18px 0 8px 0 !important; font-family: 'Times New Roman', Times, serif !important; }
+section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span, section[data-testid="stSidebar"] div { color: #3A2115 !important; font-family: 'Times New Roman', Times, serif !important; }
+section[data-testid="stSidebar"] button { background: #FFFFFF !important; color: #714329 !important; font-weight: 800 !important; border-radius: 12px !important; width: 100% !important; border: 1.5px solid #D0B9A7 !important; font-family: 'Times New Roman', Times, serif !important; font-size: 16px !important; }
+section[data-testid="stSidebar"] button * { color: #714329 !important; font-family: 'Times New Roman', Times, serif !important; }
+section[data-testid="stSidebar"] button p, section[data-testid="stSidebar"] button span { color: #714329 !important; font-family: 'Times New Roman', Times, serif !important; }
 section[data-testid="stSidebar"] button:hover { background: #F7F1EB !important; color: #714329 !important; box-shadow: 0 6px 18px rgba(113,67,41,0.25) !important; transform: translateX(4px) scale(1.02) !important; border: 2px solid #714329 !important; }
 section[data-testid="stSidebar"] button:hover * { color: #714329 !important; }
 </style>
@@ -77,7 +79,26 @@ def box(label, value):
 def bar(title): st.markdown(f"<div class='blue-bar'>{title}</div>", unsafe_allow_html=True)
 def subbar(title): st.markdown(f"<div class='sub-bar'>{title}</div>", unsafe_allow_html=True)
 def export_csv(df, filename):
-    if df is not None and not df.empty:
+    # FIX: Show Export CSV ALWAYS - even if table is empty, so you can see it and download template
+    if df is None or df.empty:
+        template = "Date,Product,Amount,Notes\n"
+        if "investment" in filename.lower():
+            template = "Investor,Amount (PKR),Date,Notes\n"
+        elif "expense" in filename.lower():
+            template = "Date,Expense,Amount (PKR),Notes\n"
+        elif "product" in filename.lower():
+            template = "Product Name,Category,Default Sale Rate (PKR),Notes\n"
+        elif "purchase" in filename.lower():
+            template = "Date,Product,Qty Purchased,Purchase Cost/Unit (PKR),Notes\n"
+        elif "sale" in filename.lower():
+            template = "Date,Product,Customer,Qty Sold,Sale Rate (PKR),Discount (PKR),Rate Override,Amount Received\n"
+        elif "withdrawal" in filename.lower():
+            template = "Date,Withdrawn By,Amount (PKR),Notes\n"
+        elif "note" in filename.lower():
+            template = "Date,Title,Note\n"
+        st.download_button("⬇️ Export CSV - Download Template", template, filename, "text/csv")
+        st.caption("Table is empty right now, so this is a blank template CSV with correct headings. Fill it and upload it from Excel / CSV Upload page.")
+    else:
         st.download_button("⬇️ Export CSV", df.to_csv(index=False), filename, "text/csv")
 def legend_table(rows):
     df = pd.DataFrame(rows, columns=["Term", "What It Means"])
@@ -170,10 +191,10 @@ def calc_sales_enriched(sales, avg_map, prods):
 
 # --- SIDEBAR: DASHBOARD & NOTES AS 2 SEPARATE TITLES - COMPANY SYMBOL, LIGHT BROWN ---
 st.sidebar.markdown("""
-<div style='background:#714329; padding:14px 12px; border-radius:14px; text-align:center;'>
+<div style='background:#714329; padding:14px 12px; border-radius:14px; text-align:center; font-family: Times New Roman, Times, serif;'>
     <div style='font-size:36px;'>🏢</div>
-    <div style='font-size:28px; font-weight:900; color:white; letter-spacing:1px;'>NESCO</div>
-    <div style='font-size:14px; color:#D0B9A7; font-weight:600;'>Distributors</div>
+    <div style='font-size:28px; font-weight:900; color:white; letter-spacing:1px; font-family: Times New Roman, Times, serif;'>NESCO</div>
+    <div style='font-size:14px; color:#D0B9A7; font-weight:600; font-family: Times New Roman, Times, serif;'>Distributors</div>
 </div>
 """, unsafe_allow_html=True)
 if "menu" not in st.session_state: st.session_state.menu = "Dashboard"
@@ -302,6 +323,7 @@ elif menu == "Notes":
         if st.form_submit_button("Save Note"):
             if save("notes", {"date": str(d), "title": t, "note": n}): st.success("Saved! Dashboard auto-updated."); st.rerun()
     if not notes.empty: st.dataframe(notes, use_container_width=True); export_csv(notes, "notes.csv")
+    else: export_csv(notes, "notes.csv")
     bar("WORKBOOK MAP")
     legend_table([
         ["Dashboard", "Summary of the whole business, updates automatically"],
@@ -440,7 +462,7 @@ elif menu == "Inventory Summary":
             rows.append({"Product": pname, "Total Qty Purchased": pq, "Total Qty Sold": sq, "Remaining Stock": rem, "Avg Cost/Unit": round(avgc,2), "Remaining Value": round(rem*avgc,2), "Total Revenue": round(rev,2), "Total Profit": round(prof,2), "Margin %": round((prof/rev*100) if rev else 0,2)})
         idf = pd.DataFrame(rows)
         st.dataframe(idf, use_container_width=True); export_csv(idf, "inventory_summary.csv")
-    else: st.info("No product yet.")
+    else: st.info("No product yet."); export_csv(prods, "inventory_summary.csv")
     bar("HOW TO USE - INVENTORY SUMMARY")
     legend_table([["Remaining Stock", "Total Qty Purchased - Total Qty Sold."],["Remaining Value", "Remaining Stock x Avg Cost/Unit."],["Do Not Type Here", "This sheet is formula only. Type in Products, Purchases and Sales."]])
 
