@@ -4,37 +4,8 @@ import plotly.express as px
 from supabase import create_client
 from datetime import date
 import io
-import streamlit.components.v1 as components
 
 st.set_page_config(page_title="NESCO Distributors - Business Dashboard", layout="wide", page_icon="🏢")
-
-# >> IS NOW A REAL BUTTON - CLICK TO COLLAPSE / EXPAND SIDEBAR, keyboard_double STAYS HIDDEN
-components.html("""
-<script>
-function setupToggle() {
-  const doc = window.parent.document;
-  const realBtn = doc.querySelector('[data-testid="stSidebarCollapsedControl"] button') || doc.querySelector('[data-testid="collapsedControl"] button');
-  if (realBtn) {
-    realBtn.style.opacity = '0';
-    realBtn.style.position = 'absolute';
-    realBtn.style.pointerEvents = 'auto';
-  }
-  const allBtns = doc.querySelectorAll('button');
-  allBtns.forEach(btn => {
-    if ((btn.innerText || '').trim() === '>>' && !btn.dataset.nescoToggle) {
-      btn.dataset.nescoToggle = '1';
-      btn.style.cursor = 'pointer';
-      btn.onclick = function() {
-        const real = doc.querySelector('[data-testid="stSidebarCollapsedControl"] button') || doc.querySelector('[data-testid="collapsedControl"] button') || doc.querySelector('button[aria-label="Close sidebar"]') || doc.querySelector('button[aria-label="Open sidebar"]');
-        if (real) real.click();
-      };
-    }
-  });
-}
-setInterval(setupToggle, 500);
-setupToggle();
-</script>
-""", height=0)
 
 # --- FONT: TIMES NEW ROMAN + PALETTE + HOVER GLOW + SIDEBAR FIX ---
 st.markdown("""
@@ -73,11 +44,21 @@ section[data-testid="stSidebar"] button:hover { background: #F7F1EB !important; 
 section[data-testid="stSidebar"] button:hover * { color: #714329 !important; }
 .nesco-title { color: #FFFFFF !important; font-weight: 900 !important; font-family: 'Times New Roman', Times, serif !important; }
 .nesco-sub { color: #D0B9A7 !important; font-family: 'Times New Roman', Times, serif !important; }
-/* REMOVE keyboard_double TEXT - KEEP BUTTON ALIVE SO >> CAN CLICK IT */
-[data-testid="stSidebarCollapsedControl"] { opacity: 0 !important; width: 0px !important; overflow: hidden !important; pointer-events: auto !important; }
-[data-testid="collapsedControl"] { opacity: 0 !important; width: 0px !important; overflow: hidden !important; pointer-events: auto !important; }
-div[data-testid="stSidebarHeader"] { display: none !important; }
-button[kind="header"] { opacity: 0 !important; }
+/* ONLY CHANGE: WHITE PILL / keyboard_double BUTTON KO >> BANA DIYA - SAME BUTTON, SIRF LOOK BADLA */
+[data-testid="stSidebarCollapsedControl"] { display: flex !important; opacity: 1 !important; visibility: visible !important; }
+[data-testid="stSidebarCollapsedControl"] button { background: #FFFFFF !important; border-radius: 20px !important; width: 42px !important; height: 42px !important; min-width: 42px !important; border: 1px solid #D0B9A7 !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+[data-testid="stSidebarCollapsedControl"] button span, [data-testid="stSidebarCollapsedControl"] button svg, [data-testid="stSidebarCollapsedControl"] button i { display: none !important; }
+[data-testid="stSidebarCollapsedControl"] button::after { content: ">>" !important; font-family: 'Times New Roman', Times, serif !important; color: #714329 !important; font-weight: 900 !important; font-size: 18px !important; letter-spacing: -1px !important; }
+[data-testid="collapsedControl"] { display: flex !important; opacity: 1 !important; visibility: visible !important; }
+[data-testid="collapsedControl"] button { background: #FFFFFF !important; border-radius: 20px !important; width: 42px !important; height: 42px !important; min-width: 42px !important; }
+[data-testid="collapsedControl"] button span, [data-testid="collapsedControl"] button svg { display: none !important; }
+[data-testid="collapsedControl"] button::after { content: ">>" !important; font-family: 'Times New Roman', Times, serif !important; color: #714329 !important; font-weight: 900 !important; font-size: 18px !important; }
+/* Sidebar khula ho to upar right corner wala close button bhi >> dikhe */
+section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button { background: #FFFFFF !important; border-radius: 20px !important; width: 42px !important; height: 42px !important; min-width: 42px !important; }
+section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button span, section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button svg { display: none !important; }
+section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button::after { content: ">>" !important; font-family: 'Times New Roman', Times, serif !important; color: #714329 !important; font-weight: 900 !important; font-size: 18px !important; }
+button[kind="header"] span, button[kind="header"] svg { display: none !important; }
+button[kind="header"]::after { content: ">>" !important; font-family: 'Times New Roman', Times, serif !important; color: #714329 !important; font-weight: 900 !important; font-size: 18px !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -221,10 +202,7 @@ def calc_sales_enriched(sales, avg_map, prods):
     df["payment_status"] = df.apply(lambda r: "Paid" if r["outstanding"] <= 0 else ("Partial" if r["received"]>0 else "Unpaid"), axis=1)
     return df
 
-# --- SIDEBAR: >> BUTTON IN RIGHT CORNER - CLICK TO HIDE / SHOW SIDEBAR + NESCO WHITE BOLD ---
-c_left, c_right = st.sidebar.columns([5, 1])
-with c_right:
-    st.button(">>", key="nesco_toggle_sidebar")
+# --- SIDEBAR: NO EXTRA >> BUTTON - NATIVE BUTTON ITSELF IS NOW >> + NESCO WHITE BOLD ---
 st.sidebar.markdown("""
 <div style='background:#714329; padding:14px 12px; border-radius:14px; text-align:center; font-family: Times New Roman, Times, serif;'>
     <div style='font-size:36px;'>🏢</div>
