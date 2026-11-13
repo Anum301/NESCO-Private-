@@ -6,9 +6,12 @@ from datetime import date
 import io
 import numpy as np
 
-st.set_page_config(page_title="NESCO Distributors - Business Dashboard", layout="wide", page_icon="🏢")
+# FIX: Sidebar ALWAYS expanded on load, native Streamlit arrow will show - no custom >> anymore
+st.set_page_config(page_title="NESCO Distributors - Business Dashboard", layout="wide", page_icon="🏢", initial_sidebar_state="expanded")
 
-# --- FONT: TIMES NEW ROMAN + PALETTE + HOVER GLOW + SIDEBAR FIX - OLD CODE SAME ---
+# --- FONT: TIMES NEW ROMAN + PALETTE + HOVER GLOW - OLD CODE SAME ---
+# NOTE: Sidebar collapse CSS is DELETED on purpose - that CSS was hiding the sidebar button.
+# We do NOT touch [data-testid="stSidebarCollapsedControl"] or button[kind="header"] at all now.
 st.markdown("""
 <style>
 * { font-family: 'Times New Roman', Times, serif !important; }
@@ -45,24 +48,6 @@ section[data-testid="stSidebar"] button:hover { background: #F7F1EB !important; 
 section[data-testid="stSidebar"] button:hover * { color: #714329 !important; }
 .nesco-title { color: #FFFFFF !important; font-weight: 900 !important; font-family: 'Times New Roman', Times, serif !important; }
 .nesco-sub { color: #D0B9A7 !important; font-family: 'Times New Roman', Times, serif !important; }
-/* FIX 10: >> BUTTON - HIDE ALL LEAKED TEXT incl. keyboard_double_arrow_right / ouble_arrow_right - ONLY >> SHOWS */
-[data-testid="stSidebarCollapsedControl"] { display: flex !important; opacity: 1 !important; visibility: visible !important; font-size: 0px !important; color: transparent !important; }
-[data-testid="stSidebarCollapsedControl"] button { background: #FFFFFF !important; border-radius: 20px !important; width: 42px !important; height: 42px !important; min-width: 42px !important; border: 1px solid #D0B9A7 !important; display: flex !important; align-items: center !important; justify-content: center !important; font-size: 0px !important; line-height: 0 !important; color: transparent !important; overflow: hidden !important; }
-[data-testid="stSidebarCollapsedControl"] button span, [data-testid="stSidebarCollapsedControl"] button svg, [data-testid="stSidebarCollapsedControl"] button i, [data-testid="stSidebarCollapsedControl"] * { display: none !important; font-size: 0px !important; color: transparent !important; }
-[data-testid="stSidebarCollapsedControl"] button::after { content: ">>" !important; font-family: 'Times New Roman', Times, serif !important; color: #714329 !important; font-weight: 900 !important; font-size: 18px !important; line-height: 1 !important; letter-spacing: -1px !important; }
-[data-testid="collapsedControl"] { display: flex !important; opacity: 1 !important; visibility: visible !important; font-size: 0px !important; color: transparent !important; }
-[data-testid="collapsedControl"] button { background: #FFFFFF !important; border-radius: 20px !important; width: 42px !important; height: 42px !important; min-width: 42px !important; font-size: 0px !important; line-height: 0 !important; color: transparent !important; overflow: hidden !important; }
-[data-testid="collapsedControl"] button span, [data-testid="collapsedControl"] button svg, [data-testid="collapsedControl"] * { display: none !important; font-size: 0px !important; }
-[data-testid="collapsedControl"] button::after { content: ">>" !important; font-family: 'Times New Roman', Times, serif !important; color: #714329 !important; font-weight: 900 !important; font-size: 18px !important; line-height: 1 !important; }
-section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button { background: #FFFFFF !important; border-radius: 20px !important; width: 42px !important; height: 42px !important; min-width: 42px !important; font-size: 0px !important; line-height: 0 !important; color: transparent !important; overflow: hidden !important; }
-section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button span, section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button svg, section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button * { display: none !important; font-size: 0px !important; }
-section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button::after { content: ">>" !important; font-family: 'Times New Roman', Times, serif !important; color: #714329 !important; font-weight: 900 !important; font-size: 18px !important; line-height: 1 !important; }
-button[kind="header"] { font-size: 0px !important; line-height: 0 !important; color: transparent !important; overflow: hidden !important; }
-button[kind="header"] span, button[kind="header"] svg, button[kind="header"] * { display: none !important; font-size: 0px !important; }
-button[kind="header"]::after { content: ">>" !important; font-family: 'Times New Roman', Times, serif !important; color: #714329 !important; font-weight: 900 !important; font-size: 18px !important; line-height: 1 !important; }
-/* Hide Streamlit default top toolbar that caused >> >> >> leak */
-header[data-testid="stHeader"] { background: transparent; }
-div[data-testid="stToolbar"], div[data-testid="stDecoration"] { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -85,23 +70,17 @@ db = get_db()
 
 # ---------- FIX HELPERS - CLEAN DISPLAY FOR ALL SHEETS ----------
 def clean_for_display(df):
-    """FIX 1,3,7,8,9: Remove unnamed, None -> blank, Date 00:00:00 -> 01 Aug 2026, Remove Total rows"""
     if df is None or df.empty:
         return pd.DataFrame()
     df = df.copy()
-    # Remove unnamed columns
     df = df.loc[:, ~df.columns.astype(str).str.lower().str.startswith("unnamed")]
     df = df.dropna(axis=1, how="all")
     df.columns = [str(c).strip() for c in df.columns]
-    # Remove Total rows - Total Capital Invested, Total Withdrawn, Total etc. - they are totals, not data
     if len(df.columns) > 0:
         first = df.iloc[:, 0].astype(str).str.lower().str.strip()
-        # Only if first col looks like a label col, not a date
         if "date" not in str(df.columns[0]).lower():
             df = df[~first.str.contains("total", na=False)]
-    # None / nan / NaT -> blank
     df = df.replace({"None": "", "none": "", "nan": "", "NaT": "", np.nan: ""})
-    # Date format - never 00:00:00
     for col in df.columns:
         if "date" in col.lower():
             df[col] = pd.to_datetime(df[col], errors="coerce")
@@ -109,7 +88,6 @@ def clean_for_display(df):
     return df.reset_index(drop=True)
 
 def show_table(df, title=""):
-    """FIX 4: Bottom scroller on every table - Notes fully visible"""
     if title:
         st.markdown(f"#### {title}")
     if df is None or df.empty:
@@ -126,7 +104,6 @@ def load(table):
     except: return pd.DataFrame()
 
 def save(table, data):
-    # FIX 8/9: If db is None, do NOT crash with 'NoneType' object has no attribute 'table'
     if db is None:
         st.warning("Supabase is not connected - data will show in this session only.")
         return False
@@ -245,7 +222,8 @@ def calc_sales_enriched(sales, avg_map, prods):
     df["payment_status"] = df.apply(lambda r: "Paid" if r["outstanding"] <= 0 else ("Partial" if r["received"]>0 else "Unpaid"), axis=1)
     return df
 
-# --- SIDEBAR: OLD ONE SAME ---
+# --- SIDEBAR: OLD ONE SAME + BACKUP TOP NAVIGATION ---
+# If sidebar ever collapses, top navigation below still lets you switch pages - sidebar will never trap you again
 st.sidebar.markdown("""
 <div style='background:#714329; padding:14px 12px; border-radius:14px; text-align:center; font-family: Times New Roman, Times, serif;'>
     <div style='font-size:36px;'>🏢</div>
@@ -266,6 +244,11 @@ if st.sidebar.button("📈 Financial Reports"): st.session_state.menu = "Financi
 st.sidebar.markdown("---")
 st.sidebar.success("Private Mode: ON 🔒")
 if st.sidebar.button("Logout"): st.session_state.login = False; st.rerun()
+
+# BACKUP TOP NAV - shows even if sidebar is collapsed, so you are never stuck
+top_nav = st.selectbox("☰ Go to Page - Use this if sidebar is hidden", ["Dashboard","Notes","Products","Purchases","Sales","Inventory Summary","Expenses","Investment","Withdrawals","Analytics","Monitoring","Excel Upload","Auto-Save Excel","Financial Reports"], index=["Dashboard","Notes","Products","Purchases","Sales","Inventory Summary","Expenses","Investment","Withdrawals","Analytics","Monitoring","Excel Upload","Auto-Save Excel","Financial Reports"].index(st.session_state.menu) if st.session_state.menu in ["Dashboard","Notes","Products","Purchases","Sales","Inventory Summary","Expenses","Investment","Withdrawals","Analytics","Monitoring","Excel Upload","Auto-Save Excel","Financial Reports"] else 0)
+if top_nav != st.session_state.menu:
+    st.session_state.menu = top_nav; st.rerun()
 menu = st.session_state.menu
 
 sales_raw = load("sales"); purch = load("purchases"); prods = load("products")
@@ -339,9 +322,12 @@ if menu == "Dashboard":
             ["Year to Date", today.year if pd.notna(today) else "", f"{ytd['revenue'].sum():,.0f}", f"{ytd['profit'].sum():,.0f}", f"{ytd['received'].sum():,.0f}"],
         ], columns=["Period","Date","Revenue (PKR)","Profit (PKR)","Cash Collected (PKR)"])
         st.dataframe(tdf, use_container_width=True)
+    else:
+        st.info("No sales yet - upload Sales Excel to see Latest Day / Last 7 Days.")
     subbar("PER PRODUCT RECAP")
     st.markdown("<div class='info-box'><b>What is this?</b> Product by product summary - Which product is giving you most profit, which product has most stock left, and what is the value of that remaining stock.</div>", unsafe_allow_html=True)
     if not recap_df.empty: st.dataframe(recap_df, use_container_width=True)
+    else: st.info("No recap yet - add Products + Sales first.")
     bar("LEGEND & HOW THE CALCULATIONS WORK")
     st.markdown("<div class='info-box'><b>Blue Text</b> = Type your own data here (Purchases, Sales, Products, Expenses, Investment, Debtors sheets) | <b>Black Text</b> = Formula, calculating automatically - don't overwrite | <b>Green Text</b> = Pulled from another sheet</div>", unsafe_allow_html=True)
     legend_table([
@@ -361,7 +347,7 @@ if menu == "Dashboard":
     bar("HOW TO USE - WITH YOUR OWN NUMBERS")
     st.markdown("<div class='info-box'>A full worked example with your own numbers, plus the daily routine, is in the Notes sheet.</div>", unsafe_allow_html=True)
     legend_table([
-        ["How to add a new product", "Type its name in the Products sheet. A new row appears in Inventory Summary and Dashboard automatically (first 10 product slots are pre-built, extend the Inventory Summary table down for more)"],
+        ["How to add a new product", "Type its name in the Products sheet. A new row appears in Inventory Summary and Dashboard automatically"],
         ["How to record a new purchase", "Add a row in the Purchases sheet (Date, Product, Qty, Rate) - even for a product you already stock, at a different rate. The weighted-average cost updates instantly everywhere."],
         ["How to record a sale", "Add a row in the Sales sheet (Date, Product, Customer, Qty, Revenue, cost, profit and margin) themselves in."],
         ["How to record a stock expense (transport, rent, wages, packing)", "Add a row in the Expenses sheet. It feeds Net Profit (After Expenses) on the Dashboard"],
@@ -374,6 +360,8 @@ if menu == "Dashboard":
 elif menu == "Financial Reports":
     bar("Financial Reports")
     st.markdown("<div class='info-box'><b>Financial performance</b> - A summary of sales, collections and expenses by period. This page pulls everything automatically from Sales, Purchases, Expenses and Investment. You do not type anything here.</div>", unsafe_allow_html=True)
+    if sales.empty and purch.empty:
+        st.warning("No data yet - upload Excel from Excel / CSV Upload page. After upload, these PKR 0.00 will become real numbers.")
     period = st.radio("Select Period", ["Weekly", "Monthly", "Yearly"], horizontal=True, key="fin_period")
     sales_f = sales.copy(); purch_f = purch.copy(); exps_f = exps.copy()
     if not sales.empty and "date" in sales:
@@ -435,8 +423,8 @@ elif menu == "Financial Reports":
         if not monthly_g.empty and monthly_g["Revenue"].sum() > 0:
             st.plotly_chart(px.bar(monthly_g, x="Month", y="Revenue", title="Sales by Month", color_discrete_sequence=["#714329"]), use_container_width=True)
             st.dataframe(monthly_g, use_container_width=True)
-        else: st.info("No sales data for this period.")
-    else: st.info("No sales data for this period.")
+        else: st.info("No sales data for this period - upload Sales Excel first.")
+    else: st.info("No sales data for this period - upload Sales Excel first.")
     bar("HOW TO READ - FINANCIAL REPORTS")
     legend_table([
         ["Total Sales", "Revenue in this period - Qty Sold x Sale Rate - Discount"],
@@ -453,10 +441,12 @@ elif menu == "Financial Reports":
     fin_df = pd.DataFrame([{"Period": period, "Total Sales": f_total_sales, "Sales Collected": f_collected, "Purchases": f_purchases, "Expenses": f_expenses, "Outstanding Credit": f_outstanding, "Opening Balance": f_opening, "Gross Profit": f_gross, "Net Profit": f_net}])
     st.markdown("---"); st.subheader("Export CSV"); export_csv(fin_df, "financial_reports.csv")
 
-# --- ANALYTICS - FIXED: NESCO BUSINESS ONLY - NO TOP SOURCES / NO CREATORS & AI / NO VISITORS ---
 elif menu == "Analytics":
     bar("Analytics")
     st.markdown("<div class='info-box'>Analytics - NESCO Business Only. Revenue, Profit, Products, Inventory, Capital. No Visitors, No Top Sources, No Creators & AI.</div>", unsafe_allow_html=True)
+    if sales.empty and purch.empty and inv.empty:
+        st.warning("No data found in Supabase yet. Please go to Excel / CSV Upload and upload your Excel once. After that all graphs will appear here automatically.")
+        st.info("Monday 8:30 AM we will add Live Link - then you will not need to upload again.")
     c1,c2,c3,c4 = st.columns(4)
     with c1: box("Total Revenue", f"Rs {total_rev:,.0f}")
     with c2: box("Gross Profit", f"Rs {gross_profit:,.0f}")
@@ -472,6 +462,8 @@ elif menu == "Analytics":
         by = sales.groupby("product", as_index=False)[["revenue","profit"]].sum().sort_values("revenue", ascending=False)
         st.plotly_chart(px.bar(by, x="product", y=["revenue","profit"], barmode="group", color_discrete_sequence=["#714329","#B08463"]), use_container_width=True)
         show_table(by, "Revenue & Profit by Product")
+    else:
+        st.info("No sales data yet - upload Sales Excel to see this graph.")
     subbar("Sales Trend - Revenue Over Time")
     if not sales.empty and "date" in sales:
         tr = sales.copy(); tr["date_parsed"] = pd.to_datetime(tr["date"], errors="coerce")
@@ -479,15 +471,22 @@ elif menu == "Analytics":
         tr["Date"] = tr["date_parsed"].dt.strftime("%d %b %Y")
         if not tr.empty:
             st.plotly_chart(px.line(tr, x="Date", y="revenue", markers=True, color_discrete_sequence=["#714329"]), use_container_width=True)
+        else: st.info("No sales dates yet.")
+    else:
+        st.info("No sales data yet - upload Sales Excel to see this graph.")
     subbar("Payment Status - Received vs Outstanding")
     if not sales.empty and "payment_status" in sales:
         pay = sales.groupby("payment_status", as_index=False)[["received","outstanding","revenue"]].sum()
         st.plotly_chart(px.pie(pay, names="payment_status", values="revenue", hole=0.45, color_discrete_sequence=["#714329","#B08463","#B9937B"]), use_container_width=True)
         show_table(pay, "Payment Status")
+    else:
+        st.info("No payment data yet.")
     subbar("Inventory - Remaining Stock by Product")
     if not recap_df.empty:
         st.plotly_chart(px.bar(recap_df, x="product", y="Remaining Stock", color_discrete_sequence=["#714329"]), use_container_width=True)
         show_table(recap_df, "Inventory Summary - Analytics")
+    else:
+        st.info("No inventory data yet - add Products + Purchases first.")
     subbar("Capital - Investment vs Withdrawals")
     cap_df = pd.DataFrame([{"Type":"Invested","Amount (PKR)":total_inv_amt},{"Type":"Withdrawn","Amount (PKR)":total_wd},{"Type":"Net Capital","Amount (PKR)":total_inv_amt-total_wd}])
     st.plotly_chart(px.bar(cap_df, x="Type", y="Amount (PKR)", text="Amount (PKR)", color_discrete_sequence=["#714329"]), use_container_width=True)
@@ -497,6 +496,8 @@ elif menu == "Analytics":
         pur = purch.groupby("product", as_index=False)[["quantity","total"]].sum().sort_values("total", ascending=False)
         st.plotly_chart(px.bar(pur, x="product", y="total", color_discrete_sequence=["#714329"]), use_container_width=True)
         show_table(pur, "Purchases by Product")
+    else:
+        st.info("No purchase data yet.")
     st.markdown("---"); st.subheader("Export CSV"); export_csv(recap_df, "analytics.csv")
 
 elif menu == "Monitoring":
@@ -750,13 +751,11 @@ elif menu == "Excel Upload":
     st.markdown("<div class='info-box'>Upload your Excel / CSV sheet. Headings must match the website headings. Data goes directly to Supabase and Dashboard auto-updates. Drag & Drop your file below.</div>", unsafe_allow_html=True)
     table = st.selectbox("Which Sheet To Upload To?", ["products","purchases","sales","expenses","investment","withdrawals","notes"])
     st.code({"products": "Product Name, Category, Default Sale Rate (PKR), Notes","purchases": "Date, Product, Qty Purchased, Purchase Cost/Unit (PKR), Notes","sales": "Date, Product, Customer, Qty Sold, Sale Rate (PKR), Discount (PKR), Rate Override, Amount Received","expenses": "Date, Expense, Amount (PKR), Notes","investment": "Investor, Amount (PKR), Date, Notes","withdrawals": "Date, Withdrawn By, Amount (PKR), Notes","notes": "Date, Title, Note"}[table])
-    # FIX 2: Single file_uploader - no double uploadUpload text, FIX 5: header row detection
     file = st.file_uploader("Drag & Drop Excel / CSV Here", type=["xlsx","csv"])
     if file is not None:
         try:
             if file.name.endswith("xlsx"):
                 raw = pd.read_excel(file, header=None, dtype=str)
-                # FIX 5: Find real header - skip rows before Row 3, skip title rows
                 header_idx = 2
                 for i in range(min(5, len(raw))):
                     vals = raw.iloc[i].astype(str).str.lower().tolist()
@@ -769,18 +768,15 @@ elif menu == "Excel Upload":
                 df = df.dropna(axis=1, how="all").dropna(axis=0, how="all")
             else:
                 df = pd.read_csv(file, dtype=str)
-            # FIX 1: Remove unnamed columns
             df = df.loc[:, ~df.columns.astype(str).str.lower().str.startswith("unnamed")]
             df = df.dropna(axis=1, how="all")
             st.write("Original Headings:", list(df.columns))
             mapping = {"product name":"product","product":"product","category":"category","default sale rate (pkr)":"price","default sale rate":"price","sale rate (pkr)":"price","sale rate":"price","price":"price","date":"date","qty purchased":"quantity","qty sold":"quantity","qty":"quantity","quantity":"quantity","purchase cost/unit (pkr)":"cost","purchase cost":"cost","cost":"cost","customer":"customer","amount received":"received","received":"received","discount (pkr)":"discount","discount":"discount","rate override":"rate_override","expense":"expense","amount (pkr)":"amount","amount":"amount","investor":"owner","owner":"owner","withdrawn by":"person","person":"person","title":"title","note":"note","notes":"notes"}
             df.columns = [mapping.get(str(c).strip().lower(), str(c).strip().lower()) for c in df.columns]
-            # FIX 7/8/9: Remove Total rows, None -> blank, Date format
             df = clean_for_display(df)
             st.write("Mapped Headings:", list(df.columns))
             show_table(df, "Preview - Excel = Website")
             if st.button("Save To Supabase - Auto-Save"):
-                # FIX 8/9: Check db is not None before .table()
                 if db is None:
                     st.warning("Supabase is not connected - data saved in this session only. Please check Secrets on Monday.")
                 else:
