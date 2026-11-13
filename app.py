@@ -5,9 +5,9 @@ from supabase import create_client
 from datetime import date
 import io
 
-st.set_page_config(page_title="NESCO Distributors - Business Dashboard", layout="wide", page_icon="🤎")
+st.set_page_config(page_title="NESCO Distributors - Business Dashboard", layout="wide", page_icon="🏢")
 
-# --- PALETTE + HOVER GLOW ---
+# --- PALETTE + HOVER GLOW + SIDEBAR FIX - LIGHT BROWN + VISIBLE TEXT ---
 st.markdown("""
 <style>
 .stApp { background: #F7F1EB; }
@@ -30,18 +30,23 @@ h1,h2,h3 { color: #714329 !important; }
 .stButton>button:hover { background: #B08463 !important; box-shadow: 0 8px 20px rgba(113,67,41,0.35) !important; transform: translateY(-2px) scale(1.02) !important; border: 2px solid #714329 !important; }
 .stDownloadButton>button { background: #B08463 !important; color: white !important; font-weight: 800 !important; border-radius: 12px !important; border: none !important; transition: all 0.3s ease !important; }
 .stDownloadButton>button:hover { background: #714329 !important; box-shadow: 0 8px 20px rgba(113,67,41,0.35) !important; transform: translateY(-2px) scale(1.02) !important; }
-section[data-testid="stSidebar"] { background: #714329 !important; }
-section[data-testid="stSidebar"] * { color: white !important; }
-section[data-testid="stSidebar"] button { background: #FFFFFF !important; color: #714329 !important; font-weight: 800 !important; border-radius: 10px !important; width: 100%; transition: all 0.3s ease !important; }
-section[data-testid="stSidebar"] button:hover { background: #D0B9A7 !important; color: #714329 !important; box-shadow: 0 6px 18px rgba(0,0,0,0.25) !important; transform: translateX(4px) scale(1.02) !important; border: 2px solid #FFFFFF !important; }
-section[data-testid="stSidebar"] .sidebar-title { color: #D0B9A7 !important; font-weight: 900; letter-spacing: 1px; font-size: 13px; margin: 18px 0 6px 0; }
 .stTextInput input:hover, .stNumberInput input:hover { border-color: #714329 !important; box-shadow: 0 0 0 3px rgba(208,185,167,0.4) !important; }
+/* SIDEBAR - LIGHT BROWN + VISIBLE TEXT - FIXED */
+section[data-testid="stSidebar"] { background: #B9937B !important; }
+section[data-testid="stSidebar"] > div { background: #B9937B !important; }
+section[data-testid="stSidebar"] .sidebar-title { color: #714329 !important; font-weight: 900 !important; letter-spacing: 1px; font-size: 14px !important; margin: 18px 0 8px 0 !important; }
+section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span, section[data-testid="stSidebar"] div { color: #3A2115 !important; }
+section[data-testid="stSidebar"] button { background: #FFFFFF !important; color: #714329 !important; font-weight: 800 !important; border-radius: 12px !important; width: 100% !important; border: 1.5px solid #D0B9A7 !important; }
+section[data-testid="stSidebar"] button * { color: #714329 !important; }
+section[data-testid="stSidebar"] button p, section[data-testid="stSidebar"] button span { color: #714329 !important; }
+section[data-testid="stSidebar"] button:hover { background: #F7F1EB !important; color: #714329 !important; box-shadow: 0 6px 18px rgba(113,67,41,0.25) !important; transform: translateX(4px) scale(1.02) !important; border: 2px solid #714329 !important; }
+section[data-testid="stSidebar"] button:hover * { color: #714329 !important; }
 </style>
 """, unsafe_allow_html=True)
 
 if "login" not in st.session_state: st.session_state.login = False
 if not st.session_state.login:
-    st.markdown("<div class='blue-bar' style='text-align:center'>🤎 NESCO - Private</div>", unsafe_allow_html=True)
+    st.markdown("<div class='blue-bar' style='text-align:center'>🏢 NESCO - Private</div>", unsafe_allow_html=True)
     st.write("For authorized person only.")
     pw = st.text_input("Enter Password", type="password")
     if st.button("Login"):
@@ -163,9 +168,15 @@ def calc_sales_enriched(sales, avg_map, prods):
     df["payment_status"] = df.apply(lambda r: "Paid" if r["outstanding"] <= 0 else ("Partial" if r["received"]>0 else "Unpaid"), axis=1)
     return df
 
-# --- SIDEBAR: DASHBOARD & NOTES AS 2 SEPARATE TITLES ---
+# --- SIDEBAR: DASHBOARD & NOTES AS 2 SEPARATE TITLES - COMPANY SYMBOL, LIGHT BROWN ---
+st.sidebar.markdown("""
+<div style='background:#714329; padding:14px 12px; border-radius:14px; text-align:center;'>
+    <div style='font-size:36px;'>🏢</div>
+    <div style='font-size:28px; font-weight:900; color:white; letter-spacing:1px;'>NESCO</div>
+    <div style='font-size:14px; color:#D0B9A7; font-weight:600;'>Distributors</div>
+</div>
+""", unsafe_allow_html=True)
 if "menu" not in st.session_state: st.session_state.menu = "Dashboard"
-st.sidebar.markdown("<div style='font-size:28px;font-weight:900'>🤎 NESCO</div><div style='font-size:14px;opacity:.9'>Distributors</div>", unsafe_allow_html=True)
 st.sidebar.markdown("<div class='sidebar-title'>DASHBOARD</div>", unsafe_allow_html=True)
 if st.sidebar.button("📊 Dashboard"): st.session_state.menu = "Dashboard"; st.rerun()
 st.sidebar.markdown("<div class='sidebar-title'>NOTES</div>", unsafe_allow_html=True)
@@ -291,7 +302,6 @@ elif menu == "Notes":
         if st.form_submit_button("Save Note"):
             if save("notes", {"date": str(d), "title": t, "note": n}): st.success("Saved! Dashboard auto-updated."); st.rerun()
     if not notes.empty: st.dataframe(notes, use_container_width=True); export_csv(notes, "notes.csv")
-
     bar("WORKBOOK MAP")
     legend_table([
         ["Dashboard", "Summary of the whole business, updates automatically"],
@@ -483,7 +493,7 @@ elif menu == "Withdrawals":
 
 elif menu == "Excel Upload":
     bar("Excel / CSV Upload - Data Directly From Excel To Website")
-    st.markdown("<div class='info-box'>Upload your Excel / CSV sheet. Headings must match the website headings. Data goes directly to Supabase and Dashboard auto-updates.</div>", unsafe_allow_html=True)
+    st.markdown("<div class='info-box'>Upload your Excel / CSV sheet. Headings must match the website headings. Data goes directly to Supabase and Dashboard auto-updates. Drag & Drop your file below.</div>", unsafe_allow_html=True)
     table = st.selectbox("Which Sheet To Upload To?", ["products","purchases","sales","expenses","investment","withdrawals","notes"])
     st.code({"products": "Product Name, Category, Default Sale Rate (PKR), Notes","purchases": "Date, Product, Qty Purchased, Purchase Cost/Unit (PKR), Notes","sales": "Date, Product, Customer, Qty Sold, Sale Rate (PKR), Discount (PKR), Rate Override, Amount Received","expenses": "Date, Expense, Amount (PKR), Notes","investment": "Investor, Amount (PKR), Date, Notes","withdrawals": "Date, Withdrawn By, Amount (PKR), Notes","notes": "Date, Title, Note"}[table])
     file = st.file_uploader("Drag & Drop Excel / CSV Here", type=["xlsx","csv"])
