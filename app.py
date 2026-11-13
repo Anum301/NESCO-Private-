@@ -4,8 +4,35 @@ import plotly.express as px
 from supabase import create_client
 from datetime import date
 import io
+import streamlit.components.v1 as components
 
 st.set_page_config(page_title="NESCO Distributors - Business Dashboard", layout="wide", page_icon="🏢")
+
+# REMOVE keyboard_double PERMANENTLY - FORCE HIDE WITH JS, KEEP ONLY OUR >>
+components.html("""
+<script>
+function hideKeyboardBtn() {
+  const allBtns = window.parent.document.querySelectorAll('button');
+  allBtns.forEach(btn => {
+    const txt = btn.innerText || btn.textContent || '';
+    const label = btn.getAttribute('aria-label') || '';
+    if (txt.includes('keyboard_double') || label.toLowerCase().includes('sidebar') || label.toLowerCase().includes('collapse') || label.toLowerCase().includes('close')) {
+      if (!btn.innerHTML.includes('&gt;&gt;')) {
+        btn.style.display = 'none !important';
+        btn.style.visibility = 'hidden !important';
+        btn.style.opacity = '0 !important';
+        btn.style.width = '0px !important';
+        btn.style.height = '0px !important';
+      }
+    }
+  });
+  const collapsed = window.parent.document.querySelectorAll('[data-testid="stSidebarCollapsedControl"], [data-testid="collapsedControl"]');
+  collapsed.forEach(el => { el.style.display = 'none !important'; });
+}
+setInterval(hideKeyboardBtn, 500);
+hideKeyboardBtn();
+</script>
+""", height=0)
 
 # --- FONT: TIMES NEW ROMAN + PALETTE + HOVER GLOW + SIDEBAR FIX ---
 st.markdown("""
@@ -44,12 +71,13 @@ section[data-testid="stSidebar"] button:hover { background: #F7F1EB !important; 
 section[data-testid="stSidebar"] button:hover * { color: #714329 !important; }
 .nesco-title { color: #FFFFFF !important; font-weight: 900 !important; font-family: 'Times New Roman', Times, serif !important; }
 .nesco-sub { color: #D0B9A7 !important; font-family: 'Times New Roman', Times, serif !important; }
-/* REMOVE KEYBOARD_DOUBLE_ARROW LINE - HIDE STREAMLIT DEFAULT COLLAPSE BUTTON */
-[data-testid="stSidebarCollapsedControl"] { display: none !important; }
-[data-testid="collapsedControl"] { display: none !important; }
+/* REMOVE keyboard_double PERMANENTLY */
+[data-testid="stSidebarCollapsedControl"] { display: none !important; visibility: hidden !important; }
+[data-testid="collapsedControl"] { display: none !important; visibility: hidden !important; }
+div[data-testid="stSidebarHeader"] { display: none !important; }
+section[data-testid="stSidebar"] > div:first-child > div:first-child { display: none !important; }
 button[kind="header"] { display: none !important; }
 header[data-testid="stHeader"] { display: none !important; }
-section[data-testid="stSidebar"] button[aria-label="Close sidebar"] { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
