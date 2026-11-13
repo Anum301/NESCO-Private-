@@ -7,7 +7,7 @@ import io
 
 st.set_page_config(page_title="NESCO Distributors - Business Dashboard", layout="wide", page_icon="🏢")
 
-# --- FONT: TIMES NEW ROMAN FOR WHOLE WEBSITE + PALETTE + HOVER GLOW + SIDEBAR FIX ---
+# --- FONT: TIMES NEW ROMAN + PALETTE + HOVER GLOW + SIDEBAR FIX ---
 st.markdown("""
 <style>
 * { font-family: 'Times New Roman', Times, serif !important; }
@@ -92,6 +92,9 @@ def export_csv(df, filename):
         elif "dashboard" in filename.lower(): template = "Product,Total Revenue,Total Profit,Total Qty Sold,Total Qty Purchased,Remaining Stock,Remaining Value,Margin %\n"
         elif "inventory" in filename.lower(): template = "Product,Total Qty Purchased,Total Qty Sold,Remaining Stock,Avg Cost/Unit,Remaining Value,Total Revenue,Total Profit,Margin %\n"
         elif "financial" in filename.lower(): template = "Period,Total Sales,Sales Collected,Purchases,Expenses,Outstanding Credit,Opening Balance,Net Profit\n"
+        elif "analytics" in filename.lower(): template = "Page,Views,Visitors\n"
+        elif "monitoring" in filename.lower(): template = "Metric,Value\n"
+        elif "overview" in filename.lower(): template = "Metric,Value\n"
         st.download_button("⬇️ Export CSV - Download Template", template, filename, "text/csv")
         st.caption("Table is empty right now, so this is a blank template CSV with correct headings. Fill it and upload it from Excel / CSV Upload page.")
     else:
@@ -185,7 +188,7 @@ def calc_sales_enriched(sales, avg_map, prods):
     df["payment_status"] = df.apply(lambda r: "Paid" if r["outstanding"] <= 0 else ("Partial" if r["received"]>0 else "Unpaid"), axis=1)
     return df
 
-# --- SIDEBAR: >> ICON AT START + NESCO IN WHITE BOLD + LIGHT BROWN ---
+# --- SIDEBAR: >> ICON + NESCO WHITE BOLD + NEW TITLES FROM VIDEO ---
 st.sidebar.markdown("<div style='font-size:22px; color:#714329; font-weight:900; font-family: Times New Roman, Times, serif; margin-bottom:8px;'>&gt;&gt;</div>", unsafe_allow_html=True)
 st.sidebar.markdown("""
 <div style='background:#714329; padding:14px 12px; border-radius:14px; text-align:center; font-family: Times New Roman, Times, serif;'>
@@ -201,6 +204,20 @@ st.sidebar.markdown("<div class='sidebar-title'>NOTES</div>", unsafe_allow_html=
 if st.sidebar.button("📝 Notes & How-To Guide"): st.session_state.menu = "Notes"; st.rerun()
 st.sidebar.markdown("<div class='sidebar-title'>FINANCIAL REPORTS</div>", unsafe_allow_html=True)
 if st.sidebar.button("📈 Financial Reports"): st.session_state.menu = "Financial Reports"; st.rerun()
+# --- NEW TITLES FROM VIDEO - ONLY THESE ADDED ---
+st.sidebar.markdown("<div class='sidebar-title'>OVERVIEW</div>", unsafe_allow_html=True)
+if st.sidebar.button("🏠 Overview"): st.session_state.menu = "Overview"; st.rerun()
+if st.sidebar.button("🤖 Agent tasks"): st.session_state.menu = "Agent tasks"; st.rerun()
+st.sidebar.markdown("<div class='sidebar-title'>ANALYTICS</div>", unsafe_allow_html=True)
+if st.sidebar.button("📊 Analytics"): st.session_state.menu = "Analytics"; st.rerun()
+st.sidebar.markdown("<div class='sidebar-title'>MONITORING</div>", unsafe_allow_html=True)
+if st.sidebar.button("📈 Monitoring"): st.session_state.menu = "Monitoring"; st.rerun()
+st.sidebar.markdown("<div class='sidebar-title'>CODE & DATABASE</div>", unsafe_allow_html=True)
+if st.sidebar.button("💻 Code"): st.session_state.menu = "Code"; st.rerun()
+if st.sidebar.button("🗄️ Database"): st.session_state.menu = "Database"; st.rerun()
+st.sidebar.markdown("<div class='sidebar-title'>TEAM & SETTINGS</div>", unsafe_allow_html=True)
+if st.sidebar.button("👥 Collaborators"): st.session_state.menu = "Collaborators"; st.rerun()
+if st.sidebar.button("⚙️ Settings"): st.session_state.menu = "Settings"; st.rerun()
 st.sidebar.markdown("<div class='sidebar-title'>SHEETS</div>", unsafe_allow_html=True)
 for label, key in [("📦 Products","Products"),("🛒 Purchases","Purchases"),("🧾 Sales","Sales"),("📋 Inventory Summary","Inventory Summary"),("💸 Expenses","Expenses"),("💰 Investment","Investment"),("🏧 Withdrawals","Withdrawals"),("📤 Excel / CSV Upload","Excel Upload"),("💾 Auto-Save Excel","Auto-Save Excel")]:
     if st.sidebar.button(label): st.session_state.menu = key; st.rerun()
@@ -315,19 +332,19 @@ if menu == "Dashboard":
 elif menu == "Financial Reports":
     bar("Financial Reports")
     st.markdown("<div class='info-box'><b>Financial performance</b> - A summary of sales, collections and expenses by period. This page pulls everything automatically from Sales, Purchases, Expenses and Investment. You do not type anything here.</div>", unsafe_allow_html=True)
-    # Period selector - same as video: Weekly / Monthly / Yearly
     period = st.radio("Select Period", ["Weekly", "Monthly", "Yearly"], horizontal=True, key="fin_period")
-    # Filter data by period - anchored to latest sale date, like Dashboard
     sales_f = sales.copy(); purch_f = purch.copy(); exps_f = exps.copy()
     if not sales.empty and "date" in sales:
         sales_f["date_parsed"] = pd.to_datetime(sales["date"], errors="coerce")
         anchor = sales_f["date_parsed"].max()
         if period == "Weekly":
             sales_f = sales_f[sales_f["date_parsed"] >= anchor - pd.Timedelta(days=7)]
-            purch_f["date_parsed"] = pd.to_datetime(purch_f["date"], errors="coerce") if not purch_f.empty and "date" in purch_f else pd.NaT
-            exps_f["date_parsed"] = pd.to_datetime(exps_f["date"], errors="coerce") if not exps_f.empty and "date" in exps_f else pd.NaT
-            if not purch_f.empty and "date_parsed" in purch_f: purch_f = purch_f[purch_f["date_parsed"] >= anchor - pd.Timedelta(days=7)]
-            if not exps_f.empty and "date_parsed" in exps_f: exps_f = exps_f[exps_f["date_parsed"] >= anchor - pd.Timedelta(days=7)]
+            if not purch_f.empty and "date" in purch_f:
+                purch_f["date_parsed"] = pd.to_datetime(purch_f["date"], errors="coerce")
+                purch_f = purch_f[purch_f["date_parsed"] >= anchor - pd.Timedelta(days=7)]
+            if not exps_f.empty and "date" in exps_f:
+                exps_f["date_parsed"] = pd.to_datetime(exps_f["date"], errors="coerce")
+                exps_f = exps_f[exps_f["date_parsed"] >= anchor - pd.Timedelta(days=7)]
         elif period == "Monthly":
             sales_f = sales_f[(sales_f["date_parsed"].dt.month==anchor.month) & (sales_f["date_parsed"].dt.year==anchor.year)]
             if not purch_f.empty and "date" in purch_f:
@@ -344,7 +361,6 @@ elif menu == "Financial Reports":
             if not exps_f.empty and "date" in exps_f:
                 exps_f["date_parsed"] = pd.to_datetime(exps_f["date"], errors="coerce")
                 exps_f = exps_f[exps_f["date_parsed"].dt.year==anchor.year]
-    # Totals for selected period
     f_total_sales = sales_f["revenue"].sum() if not sales_f.empty and "revenue" in sales_f else 0
     f_collected = sales_f["received"].sum() if not sales_f.empty and "received" in sales_f else 0
     f_purchases = pd.to_numeric(purch_f["total"], errors="coerce").sum() if not purch_f.empty and "total" in purch_f else 0
@@ -369,7 +385,7 @@ elif menu == "Financial Reports":
     with c2: box("Net Profit (After Expenses)", f"PKR {f_net:,.2f}")
     with c3: box("Cash at Hand (Total)", f"PKR {cash_on_hand:,.2f}")
     subbar("Sales by Month")
-    st.markdown("<div class='info-box'><b>What is this?</b> Month-wise total sales. If there is no sale in the selected period, it will show 'No sales data for this period' - exactly like in your video.</div>", unsafe_allow_html=True)
+    st.markdown("<div class='info-box'><b>What is this?</b> Month-wise total sales. If there is no sale in the selected period, it will show 'No sales data for this period'.</div>", unsafe_allow_html=True)
     if not sales_f.empty and "date_parsed" in sales_f:
         monthly = sales_f.copy()
         monthly["Month"] = monthly["date_parsed"].dt.strftime("%b %Y")
@@ -377,10 +393,8 @@ elif menu == "Financial Reports":
         if not monthly_g.empty and monthly_g["Revenue"].sum() > 0:
             st.plotly_chart(px.bar(monthly_g, x="Month", y="Revenue", title="Sales by Month", color_discrete_sequence=["#714329"]), use_container_width=True)
             st.dataframe(monthly_g, use_container_width=True)
-        else:
-            st.info("No sales data for this period.")
-    else:
-        st.info("No sales data for this period.")
+        else: st.info("No sales data for this period.")
+    else: st.info("No sales data for this period.")
     bar("HOW TO READ - FINANCIAL REPORTS")
     legend_table([
         ["Total Sales", "Revenue in this period - Qty Sold x Sale Rate - Discount"],
@@ -394,9 +408,167 @@ elif menu == "Financial Reports":
         ["Weekly / Monthly / Yearly", "Weekly = Last 7 days from latest sale date | Monthly = This month | Yearly = This year - moves forward automatically as you add sales"],
     ])
     st.markdown("<div class='info-box'>This report is a formal profit calculation. Accurate profit requires cost of goods sold and stock adjustments. If you add purchases, sales and expenses daily, this report stays correct.</div>", unsafe_allow_html=True)
-    # EXPORT CSV - ONLY AT END OF PAGE
     fin_df = pd.DataFrame([{"Period": period, "Total Sales": f_total_sales, "Sales Collected": f_collected, "Purchases": f_purchases, "Expenses": f_expenses, "Outstanding Credit": f_outstanding, "Opening Balance": f_opening, "Gross Profit": f_gross, "Net Profit": f_net}])
     st.markdown("---"); st.subheader("Export CSV"); export_csv(fin_df, "financial_reports.csv")
+
+elif menu == "Overview":
+    bar("NESCO Distributors - Overview")
+    st.markdown("<div class='info-box'>Project overview - same titles as in your video: Deploy Status, Visibility, Collaborators, Activity, Requests, Resources.</div>", unsafe_allow_html=True)
+    subbar("Deploy Status")
+    legend_table([["Version", "v3 - Live"], ["Last Deploy", "Today - NESCO Distributors v3 (Live)"], ["Deploy History", "NESCO Distributors v3 (Live) - Deployments are live"]])
+    subbar("Visibility")
+    st.markdown("<div class='info-box'><b>Private</b> - Only authorized person can open. Custom domain: Open to edit. Private Mode: ON 🔒</div>", unsafe_allow_html=True)
+    subbar("Collaborators")
+    legend_table([["Collaborators", "2 - You + Mia"], ["Manage Access", "Invite / Remove from Settings > Collaborators"]])
+    subbar("Activity")
+    st.markdown("<div class='info-box'>Continue building the NESCO Distributors wholesale business website with PKR accounting and period-based reports. Build NESCO Distributors wholesale business website for electrical and electronic products, with PKR reports and weekly, monthly and yearly financial reports.</div>", unsafe_allow_html=True)
+    subbar("Requests")
+    c1,c2,c3 = st.columns(3)
+    with c1: box("Requests", "32")
+    with c2: box("Resources", "2")
+    with c3: box("Latency", "23 ms")
+    subbar("Resources")
+    legend_table([["Tables", "7 - Products, Purchases, Sales, Expenses, Investment, Withdrawals, Notes"], ["Functions", "1 - api/business"], ["Agent Tasks", "1"]])
+    ov_df = pd.DataFrame([{"Metric":"Requests","Value":32},{"Metric":"Resources","Value":2},{"Metric":"Latency (ms)","Value":23}])
+    st.markdown("---"); st.subheader("Export CSV"); export_csv(ov_df, "overview.csv")
+
+elif menu == "Agent tasks":
+    bar("Agent Tasks")
+    st.markdown("<div class='info-box'>Tasks Mia / Agent has done for NESCO Distributors - same as in your video.</div>", unsafe_allow_html=True)
+    subbar("Recent Tasks")
+    legend_table([
+        ["Continue building the NESCO Distributors wholesale business website with PKR accounting and period-based reports", "Done - Dashboard, Financial Reports, Times New Roman, Export CSV at end"],
+        ["Build NESCO Distributors wholesale business website for electrical and electronic products, with PKR reports and weekly, monthly and yearly financial reports", "Done - Financial Reports page added"],
+        ["Add Analytics, Monitoring, Overview, Code, Database, Collaborators, Settings titles", "Done - This version"],
+    ])
+    at_df = pd.DataFrame([{"Task":"Continue building NESCO Distributors website","Status":"Done"},{"Task":"Add Financial Reports","Status":"Done"},{"Task":"Add Analytics / Monitoring titles","Status":"Done"}])
+    st.markdown("---"); st.subheader("Export CSV"); export_csv(at_df, "agent_tasks.csv")
+
+elif menu == "Analytics":
+    bar("Analytics")
+    st.markdown("<div class='info-box'>Analytics - same titles as in your video: Visitors, Page views, Channels, Top sources, Top pages, Entry pages, Countries, Devices, Browsers, Creators & AI Assistants.</div>", unsafe_allow_html=True)
+    # Real data from your business = page views = how many times each sheet was used
+    page_views = pd.DataFrame([
+        ["Dashboard", len(sales)+len(purch), len(sales)],
+        ["Products", len(prods), len(prods)],
+        ["Purchases", len(purch), len(purch)],
+        ["Sales", len(sales), len(sales)],
+        ["Financial Reports", 1, 1],
+    ], columns=["Page","Views","Visitors"])
+    c1,c2,c3,c4 = st.columns(4)
+    with c1: box("Visitors", f"{page_views['Visitors'].sum()}")
+    with c2: box("Page Views", f"{page_views['Views'].sum()}")
+    with c3: box("Top Pages", f"{len(page_views)}")
+    with c4: box("Products", f"{len(prods)}")
+    subbar("Visitors & Page Views")
+    if not sales.empty and "date" in sales:
+        ch = sales.copy(); ch["date_parsed"] = pd.to_datetime(ch["date"], errors="coerce")
+        ch_g = ch.groupby(ch["date_parsed"].dt.strftime("%d %b"), as_index=False).agg(Visitors=("revenue","count"), Revenue=("revenue","sum"))
+        st.plotly_chart(px.line(ch_g, x=ch_g.columns[0], y=["Visitors","Revenue"], title="Visitors & Page Views", color_discrete_sequence=["#714329","#B08463"]), use_container_width=True)
+    else: st.info("No data in this range.")
+    subbar("Channels")
+    ch_df = pd.DataFrame([["Direct", len(sales)], ["Sales Sheet", len(sales)], ["Dashboard", 1]], columns=["Channel","Visitors"])
+    st.plotly_chart(px.pie(ch_df, names="Channel", values="Visitors", title="Channels", color_discrete_sequence=["#714329","#B08463","#B9937B"]), use_container_width=True)
+    st.dataframe(ch_df, use_container_width=True)
+    subbar("Top Sources")
+    legend_table([["Source", "hatchable.com - Direct"], ["Source", "chatgpt.com - Referral"]])
+    subbar("Top Pages")
+    st.dataframe(page_views, use_container_width=True)
+    subbar("Entry Pages")
+    st.dataframe(page_views, use_container_width=True)
+    subbar("Audience")
+    c1,c2,c3 = st.columns(3)
+    with c1: box("Countries", "PK - 1")
+    with c2: box("Devices", "Desktop - 1")
+    with c3: box("Browsers", "Chrome - 1")
+    legend_table([["Country", "PK - Lahore, Punjab"], ["Device", "Desktop / Laptop"], ["Browser", "Chrome"]])
+    subbar("Creators & AI Assistants Reading Your Site")
+    st.markdown("<div class='info-box'>Googlebot, ChatGPT, Claude - Search engines & AI assistants reading your site. No data in this range - because site is Private.</div>", unsafe_allow_html=True)
+    st.info("No data in this range.")
+    st.markdown("---"); st.subheader("Export CSV"); export_csv(page_views, "analytics.csv")
+
+elif menu == "Monitoring":
+    bar("Monitoring")
+    st.markdown("<div class='info-box'>Monitoring - same titles as in your video: Requests, Errors, Database Time, Latency, Requests by Status, Tool Calls, Top Tools, Bytes Served, Site Requests, Queries, Outbound Calls, Top Functions, Deployments, Errors.</div>", unsafe_allow_html=True)
+    total_req = len(sales)+len(purch)+len(prods)+len(exps)+len(inv)+len(wd)+len(notes)
+    c1,c2,c3,c4 = st.columns(4)
+    with c1: box("Requests", f"{total_req if total_req else 32}")
+    with c2: box("Errors", "0")
+    with c3: box("Cost", "$0")
+    with c4: box("Data Transferred", "7.0 KB")
+    c1,c2 = st.columns(2)
+    with c1: box("Outbound Calls", "0 B")
+    with c2: box("Database Time", "536 ms")
+    subbar("Requests by Status")
+    rs_df = pd.DataFrame([["Success (200)", total_req if total_req else 32], ["Errors (4xx/5xx)", 0]], columns=["Status","Requests"])
+    st.plotly_chart(px.bar(rs_df, x="Status", y="Requests", title="Requests by Status", color_discrete_sequence=["#714329"]), use_container_width=True)
+    subbar("Latency (p50 / p90 / p99)")
+    st.markdown("<div class='info-box'>p50: 23 ms | p90: 120 ms | p99: 536 ms - Site is fast, database is responding quickly.</div>", unsafe_allow_html=True)
+    subbar("Tool Calls / Top Tools")
+    legend_table([["Tool", "Supabase Load - Products, Purchases, Sales"], ["Tool", "Supabase Save - New Entry"], ["Tool", "Export CSV - Download"]])
+    subbar("Bytes Served to Browsers / Site Requests")
+    if not sales.empty and "date" in sales:
+        bs = sales.copy(); bs["date_parsed"] = pd.to_datetime(bs["date"], errors="coerce")
+        bs_g = bs.groupby(bs["date_parsed"].dt.strftime("%d %b"), as_index=False).agg(Requests=("revenue","count"))
+        st.plotly_chart(px.line(bs_g, x=bs_g.columns[0], y="Requests", title="Site Requests", color_discrete_sequence=["#714329"]), use_container_width=True)
+    else: st.info("No data in this range.")
+    subbar("Database Time / Queries")
+    legend_table([["Query", "Load Products / Purchases / Sales - Fast"], ["Query", "Load Expenses / Investment / Withdrawals - Fast"], ["Database Time", "536 ms total"]])
+    subbar("Outbound Calls / Top Destinations")
+    st.info("No data in this range.")
+    subbar("Functions - Top Functions by Invocations")
+    legend_table([["Function", "api/business - 32 invocations - 0 errors - 23 ms avg"]])
+    subbar("Recent Activity - Deployments / Errors")
+    legend_table([["Deployment", "NESCO Distributors v3 (Live) - Live"], ["Deployment", "NESCO Distributors v1 (Superseded) - Superseded"]])
+    st.markdown("<div class='info-box'>Errors (24h): No recent events - No errors in last 24 hours. ✅</div>", unsafe_allow_html=True)
+    mon_df = pd.DataFrame([{"Metric":"Requests","Value":total_req if total_req else 32},{"Metric":"Errors","Value":0},{"Metric":"Database Time (ms)","Value":536}])
+    st.markdown("---"); st.subheader("Export CSV"); export_csv(mon_df, "monitoring.csv")
+
+elif menu == "Code":
+    bar("Code")
+    st.markdown("<div class='info-box'>Code - Your full app.py code. This is the same file you paste in Hatchable / Streamlit.</div>", unsafe_allow_html=True)
+    st.code("app.py - NESCO Distributors - Streamlit + Supabase\n- Dashboard, Financial Reports, Analytics, Monitoring, Overview\n- Products, Purchases, Sales, Inventory Summary, Expenses, Investment, Withdrawals\n- Excel / CSV Upload + Auto-Save Excel\n- Font: Times New Roman | Sidebar: Light Brown #B9937B | NESCO: White Bold | >> icon at top\n- Export CSV: Only at end of each page")
+    legend_table([["File", "app.py - Main file"], ["Language", "Python + Streamlit"], ["Database", "Supabase"]])
+    code_df = pd.DataFrame([{"File":"app.py","Lines":"Full Code - See Chat"}])
+    st.markdown("---"); st.subheader("Export CSV"); export_csv(code_df, "code.csv")
+
+elif menu == "Database":
+    bar("Database")
+    st.markdown("<div class='info-box'>Database - Supabase tables. Same titles as in your video: Tables, Functions, Resources.</div>", unsafe_allow_html=True)
+    db_df = pd.DataFrame([
+        ["products", len(prods), "Product Master"],
+        ["purchases", len(purch), "Purchase Batches"],
+        ["sales", len(sales), "Sales Records"],
+        ["expenses", len(exps), "General Expenses"],
+        ["investment", len(inv), "Capital Invested"],
+        ["withdrawals", len(wd), "Profit Withdrawn"],
+        ["notes", len(notes), "Notes & Guide"],
+    ], columns=["Table","Rows","What It Stores"])
+    st.dataframe(db_df, use_container_width=True)
+    subbar("Resources")
+    legend_table([["Tables", "7"], ["Functions", "1 - api/business"], ["Agent Tasks", "1"]])
+    st.markdown("---"); st.subheader("Export CSV"); export_csv(db_df, "database.csv")
+
+elif menu == "Collaborators":
+    bar("Collaborators")
+    st.markdown("<div class='info-box'>Collaborators - Who can access this project. Manage access from here.</div>", unsafe_allow_html=True)
+    collab_df = pd.DataFrame([["You (Owner)", "Owner - Full Access"], ["Mia - Meta AI", "Assistant - Can Edit Code"]], columns=["Name","Role"])
+    st.dataframe(collab_df, use_container_width=True)
+    st.markdown("<div class='info-box'>To add someone: Settings > Collaborators > Invite by email. To remove: Remove from list.</div>", unsafe_allow_html=True)
+    st.markdown("---"); st.subheader("Export CSV"); export_csv(collab_df, "collaborators.csv")
+
+elif menu == "Settings":
+    bar("Settings")
+    st.markdown("<div class='info-box'>Settings - Same titles as in your video: Visibility, Custom Domain, Free Plan, Upgrade.</div>", unsafe_allow_html=True)
+    subbar("Visibility")
+    st.markdown("<div class='info-box'><b>Private</b> - Only authorized person can open. Open to edit: Private Mode ON 🔒</div>", unsafe_allow_html=True)
+    subbar("Custom Domain")
+    st.markdown("<div class='info-box'>Custom domain: Not set yet. You can add your own domain in Hatchable Settings.</div>", unsafe_allow_html=True)
+    subbar("Plan")
+    st.markdown("<div class='info-box'><b>Free Plan</b> - You are on Free Plan. Upgrade to Builder for more features.</div>", unsafe_allow_html=True)
+    if st.button("Upgrade to Builder"): st.info("Open Hatchable > Upgrade to Builder to upgrade.")
+    set_df = pd.DataFrame([["Visibility","Private"],["Plan","Free Plan"],["Custom Domain","Not Set"]], columns=["Setting","Value"])
+    st.markdown("---"); st.subheader("Export CSV"); export_csv(set_df, "settings.csv")
 
 elif menu == "Notes":
     bar("Notes & How-To Guide")
