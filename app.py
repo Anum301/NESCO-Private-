@@ -94,7 +94,6 @@ def export_csv(df, filename):
         elif "financial" in filename.lower(): template = "Period,Total Sales,Sales Collected,Purchases,Expenses,Outstanding Credit,Opening Balance,Net Profit\n"
         elif "analytics" in filename.lower(): template = "Page,Views,Visitors\n"
         elif "monitoring" in filename.lower(): template = "Metric,Value\n"
-        elif "collaborators" in filename.lower(): template = "Name,Role\n"
         st.download_button("⬇️ Export CSV - Download Template", template, filename, "text/csv")
         st.caption("Table is empty right now, so this is a blank template CSV with correct headings. Fill it and upload it from Excel / CSV Upload page.")
     else:
@@ -189,7 +188,6 @@ def calc_sales_enriched(sales, avg_map, prods):
     return df
 
 # --- SIDEBAR: >> IN RIGHT CORNER + NESCO WHITE BOLD ---
-# >> is in RIGHT corner of sidebar - replaces keyboard double click icon
 st.sidebar.markdown("<div style='text-align:right; font-size:22px; color:#714329; font-weight:900; font-family: Times New Roman, Times, serif; margin-bottom:8px;'>&gt;&gt;</div>", unsafe_allow_html=True)
 st.sidebar.markdown("""
 <div style='background:#714329; padding:14px 12px; border-radius:14px; text-align:center; font-family: Times New Roman, Times, serif;'>
@@ -203,16 +201,11 @@ st.sidebar.markdown("<div class='sidebar-title'>DASHBOARD</div>", unsafe_allow_h
 if st.sidebar.button("📊 Dashboard"): st.session_state.menu = "Dashboard"; st.rerun()
 st.sidebar.markdown("<div class='sidebar-title'>NOTES</div>", unsafe_allow_html=True)
 if st.sidebar.button("📝 Notes & How-To Guide"): st.session_state.menu = "Notes"; st.rerun()
-st.sidebar.markdown("<div class='sidebar-title'>ANALYTICS</div>", unsafe_allow_html=True)
-if st.sidebar.button("📊 Analytics"): st.session_state.menu = "Analytics"; st.rerun()
-st.sidebar.markdown("<div class='sidebar-title'>MONITORING</div>", unsafe_allow_html=True)
-if st.sidebar.button("📈 Monitoring"): st.session_state.menu = "Monitoring"; st.rerun()
-st.sidebar.markdown("<div class='sidebar-title'>TEAM</div>", unsafe_allow_html=True)
-if st.sidebar.button("👥 Collaborators"): st.session_state.menu = "Collaborators"; st.rerun()
+# SHEETS - Analytics + Monitoring are now PART OF SHEETS
 st.sidebar.markdown("<div class='sidebar-title'>SHEETS</div>", unsafe_allow_html=True)
-for label, key in [("📦 Products","Products"),("🛒 Purchases","Purchases"),("🧾 Sales","Sales"),("📋 Inventory Summary","Inventory Summary"),("💸 Expenses","Expenses"),("💰 Investment","Investment"),("🏧 Withdrawals","Withdrawals"),("📤 Excel / CSV Upload","Excel Upload"),("💾 Auto-Save Excel","Auto-Save Excel")]:
+for label, key in [("📦 Products","Products"),("🛒 Purchases","Purchases"),("🧾 Sales","Sales"),("📋 Inventory Summary","Inventory Summary"),("💸 Expenses","Expenses"),("💰 Investment","Investment"),("🏧 Withdrawals","Withdrawals"),("📊 Analytics","Analytics"),("📈 Monitoring","Monitoring"),("📤 Excel / CSV Upload","Excel Upload"),("💾 Auto-Save Excel","Auto-Save Excel")]:
     if st.sidebar.button(label): st.session_state.menu = key; st.rerun()
-# FINANCIAL REPORTS AT THE END - REMOVED FROM TOP, MOVED TO END
+# FINANCIAL REPORTS AT THE END
 st.sidebar.markdown("<div class='sidebar-title'>FINANCIAL REPORTS</div>", unsafe_allow_html=True)
 if st.sidebar.button("📈 Financial Reports"): st.session_state.menu = "Financial Reports"; st.rerun()
 st.sidebar.markdown("---")
@@ -407,7 +400,7 @@ elif menu == "Financial Reports":
 
 elif menu == "Analytics":
     bar("Analytics")
-    st.markdown("<div class='info-box'>Analytics - same titles as in your video: Visitors, Page views, Channels, Top sources, Top pages, Entry pages, Countries, Devices, Browsers, Creators & AI Assistants.</div>", unsafe_allow_html=True)
+    st.markdown("<div class='info-box'>Analytics - Visitors, Page views, Channels, Top sources, Top pages, Entry pages, Countries, Devices, Browsers, Creators & AI Assistants.</div>", unsafe_allow_html=True)
     page_views = pd.DataFrame([
         ["Dashboard", len(sales)+len(purch), len(sales)],
         ["Products", len(prods), len(prods)],
@@ -449,7 +442,7 @@ elif menu == "Analytics":
 
 elif menu == "Monitoring":
     bar("Monitoring")
-    st.markdown("<div class='info-box'>Monitoring - same titles as in your video: Requests, Errors, Database Time, Latency, Requests by Status, Tool Calls, Top Tools, Bytes Served, Site Requests, Queries, Outbound Calls, Top Functions, Deployments, Errors.</div>", unsafe_allow_html=True)
+    st.markdown("<div class='info-box'>Monitoring - Requests, Errors, Database Time, Latency, Requests by Status, Tool Calls, Top Tools, Bytes Served, Site Requests, Queries, Outbound Calls, Top Functions, Deployments, Errors.</div>", unsafe_allow_html=True)
     total_req = len(sales)+len(purch)+len(prods)+len(exps)+len(inv)+len(wd)+len(notes)
     c1,c2,c3,c4 = st.columns(4)
     with c1: box("Requests", f"{total_req if total_req else 32}")
@@ -483,14 +476,6 @@ elif menu == "Monitoring":
     st.markdown("<div class='info-box'>Errors (24h): No recent events - No errors in last 24 hours. ✅</div>", unsafe_allow_html=True)
     mon_df = pd.DataFrame([{"Metric":"Requests","Value":total_req if total_req else 32},{"Metric":"Errors","Value":0},{"Metric":"Database Time (ms)","Value":536}])
     st.markdown("---"); st.subheader("Export CSV"); export_csv(mon_df, "monitoring.csv")
-
-elif menu == "Collaborators":
-    bar("Collaborators")
-    st.markdown("<div class='info-box'>Collaborators - Who can access this project. Manage access from here.</div>", unsafe_allow_html=True)
-    collab_df = pd.DataFrame([["You (Owner)", "Owner - Full Access"], ["Mia - Meta AI", "Assistant - Can Edit Code"]], columns=["Name","Role"])
-    st.dataframe(collab_df, use_container_width=True)
-    st.markdown("<div class='info-box'>To add someone: Settings > Collaborators > Invite by email. To remove: Remove from list.</div>", unsafe_allow_html=True)
-    st.markdown("---"); st.subheader("Export CSV"); export_csv(collab_df, "collaborators.csv")
 
 elif menu == "Notes":
     bar("Notes & How-To Guide")
