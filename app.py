@@ -94,7 +94,7 @@ def export_csv(df, filename):
         elif "financial" in filename.lower(): template = "Period,Total Sales,Sales Collected,Purchases,Expenses,Outstanding Credit,Opening Balance,Net Profit\n"
         elif "analytics" in filename.lower(): template = "Page,Views,Visitors\n"
         elif "monitoring" in filename.lower(): template = "Metric,Value\n"
-        elif "overview" in filename.lower(): template = "Metric,Value\n"
+        elif "collaborators" in filename.lower(): template = "Name,Role\n"
         st.download_button("⬇️ Export CSV - Download Template", template, filename, "text/csv")
         st.caption("Table is empty right now, so this is a blank template CSV with correct headings. Fill it and upload it from Excel / CSV Upload page.")
     else:
@@ -188,8 +188,9 @@ def calc_sales_enriched(sales, avg_map, prods):
     df["payment_status"] = df.apply(lambda r: "Paid" if r["outstanding"] <= 0 else ("Partial" if r["received"]>0 else "Unpaid"), axis=1)
     return df
 
-# --- SIDEBAR: >> ICON + NESCO WHITE BOLD + NEW TITLES FROM VIDEO ---
-st.sidebar.markdown("<div style='font-size:22px; color:#714329; font-weight:900; font-family: Times New Roman, Times, serif; margin-bottom:8px;'>&gt;&gt;</div>", unsafe_allow_html=True)
+# --- SIDEBAR: >> IN RIGHT CORNER + NESCO WHITE BOLD ---
+# >> is in RIGHT corner of sidebar - replaces keyboard double click icon
+st.sidebar.markdown("<div style='text-align:right; font-size:22px; color:#714329; font-weight:900; font-family: Times New Roman, Times, serif; margin-bottom:8px;'>&gt;&gt;</div>", unsafe_allow_html=True)
 st.sidebar.markdown("""
 <div style='background:#714329; padding:14px 12px; border-radius:14px; text-align:center; font-family: Times New Roman, Times, serif;'>
     <div style='font-size:36px;'>🏢</div>
@@ -202,25 +203,18 @@ st.sidebar.markdown("<div class='sidebar-title'>DASHBOARD</div>", unsafe_allow_h
 if st.sidebar.button("📊 Dashboard"): st.session_state.menu = "Dashboard"; st.rerun()
 st.sidebar.markdown("<div class='sidebar-title'>NOTES</div>", unsafe_allow_html=True)
 if st.sidebar.button("📝 Notes & How-To Guide"): st.session_state.menu = "Notes"; st.rerun()
-st.sidebar.markdown("<div class='sidebar-title'>FINANCIAL REPORTS</div>", unsafe_allow_html=True)
-if st.sidebar.button("📈 Financial Reports"): st.session_state.menu = "Financial Reports"; st.rerun()
-# --- NEW TITLES FROM VIDEO - ONLY THESE ADDED ---
-st.sidebar.markdown("<div class='sidebar-title'>OVERVIEW</div>", unsafe_allow_html=True)
-if st.sidebar.button("🏠 Overview"): st.session_state.menu = "Overview"; st.rerun()
-if st.sidebar.button("🤖 Agent tasks"): st.session_state.menu = "Agent tasks"; st.rerun()
 st.sidebar.markdown("<div class='sidebar-title'>ANALYTICS</div>", unsafe_allow_html=True)
 if st.sidebar.button("📊 Analytics"): st.session_state.menu = "Analytics"; st.rerun()
 st.sidebar.markdown("<div class='sidebar-title'>MONITORING</div>", unsafe_allow_html=True)
 if st.sidebar.button("📈 Monitoring"): st.session_state.menu = "Monitoring"; st.rerun()
-st.sidebar.markdown("<div class='sidebar-title'>CODE & DATABASE</div>", unsafe_allow_html=True)
-if st.sidebar.button("💻 Code"): st.session_state.menu = "Code"; st.rerun()
-if st.sidebar.button("🗄️ Database"): st.session_state.menu = "Database"; st.rerun()
-st.sidebar.markdown("<div class='sidebar-title'>TEAM & SETTINGS</div>", unsafe_allow_html=True)
+st.sidebar.markdown("<div class='sidebar-title'>TEAM</div>", unsafe_allow_html=True)
 if st.sidebar.button("👥 Collaborators"): st.session_state.menu = "Collaborators"; st.rerun()
-if st.sidebar.button("⚙️ Settings"): st.session_state.menu = "Settings"; st.rerun()
 st.sidebar.markdown("<div class='sidebar-title'>SHEETS</div>", unsafe_allow_html=True)
 for label, key in [("📦 Products","Products"),("🛒 Purchases","Purchases"),("🧾 Sales","Sales"),("📋 Inventory Summary","Inventory Summary"),("💸 Expenses","Expenses"),("💰 Investment","Investment"),("🏧 Withdrawals","Withdrawals"),("📤 Excel / CSV Upload","Excel Upload"),("💾 Auto-Save Excel","Auto-Save Excel")]:
     if st.sidebar.button(label): st.session_state.menu = key; st.rerun()
+# FINANCIAL REPORTS AT THE END - REMOVED FROM TOP, MOVED TO END
+st.sidebar.markdown("<div class='sidebar-title'>FINANCIAL REPORTS</div>", unsafe_allow_html=True)
+if st.sidebar.button("📈 Financial Reports"): st.session_state.menu = "Financial Reports"; st.rerun()
 st.sidebar.markdown("---")
 st.sidebar.success("Private Mode: ON 🔒")
 if st.sidebar.button("Logout"): st.session_state.login = False; st.rerun()
@@ -411,43 +405,9 @@ elif menu == "Financial Reports":
     fin_df = pd.DataFrame([{"Period": period, "Total Sales": f_total_sales, "Sales Collected": f_collected, "Purchases": f_purchases, "Expenses": f_expenses, "Outstanding Credit": f_outstanding, "Opening Balance": f_opening, "Gross Profit": f_gross, "Net Profit": f_net}])
     st.markdown("---"); st.subheader("Export CSV"); export_csv(fin_df, "financial_reports.csv")
 
-elif menu == "Overview":
-    bar("NESCO Distributors - Overview")
-    st.markdown("<div class='info-box'>Project overview - same titles as in your video: Deploy Status, Visibility, Collaborators, Activity, Requests, Resources.</div>", unsafe_allow_html=True)
-    subbar("Deploy Status")
-    legend_table([["Version", "v3 - Live"], ["Last Deploy", "Today - NESCO Distributors v3 (Live)"], ["Deploy History", "NESCO Distributors v3 (Live) - Deployments are live"]])
-    subbar("Visibility")
-    st.markdown("<div class='info-box'><b>Private</b> - Only authorized person can open. Custom domain: Open to edit. Private Mode: ON 🔒</div>", unsafe_allow_html=True)
-    subbar("Collaborators")
-    legend_table([["Collaborators", "2 - You + Mia"], ["Manage Access", "Invite / Remove from Settings > Collaborators"]])
-    subbar("Activity")
-    st.markdown("<div class='info-box'>Continue building the NESCO Distributors wholesale business website with PKR accounting and period-based reports. Build NESCO Distributors wholesale business website for electrical and electronic products, with PKR reports and weekly, monthly and yearly financial reports.</div>", unsafe_allow_html=True)
-    subbar("Requests")
-    c1,c2,c3 = st.columns(3)
-    with c1: box("Requests", "32")
-    with c2: box("Resources", "2")
-    with c3: box("Latency", "23 ms")
-    subbar("Resources")
-    legend_table([["Tables", "7 - Products, Purchases, Sales, Expenses, Investment, Withdrawals, Notes"], ["Functions", "1 - api/business"], ["Agent Tasks", "1"]])
-    ov_df = pd.DataFrame([{"Metric":"Requests","Value":32},{"Metric":"Resources","Value":2},{"Metric":"Latency (ms)","Value":23}])
-    st.markdown("---"); st.subheader("Export CSV"); export_csv(ov_df, "overview.csv")
-
-elif menu == "Agent tasks":
-    bar("Agent Tasks")
-    st.markdown("<div class='info-box'>Tasks Mia / Agent has done for NESCO Distributors - same as in your video.</div>", unsafe_allow_html=True)
-    subbar("Recent Tasks")
-    legend_table([
-        ["Continue building the NESCO Distributors wholesale business website with PKR accounting and period-based reports", "Done - Dashboard, Financial Reports, Times New Roman, Export CSV at end"],
-        ["Build NESCO Distributors wholesale business website for electrical and electronic products, with PKR reports and weekly, monthly and yearly financial reports", "Done - Financial Reports page added"],
-        ["Add Analytics, Monitoring, Overview, Code, Database, Collaborators, Settings titles", "Done - This version"],
-    ])
-    at_df = pd.DataFrame([{"Task":"Continue building NESCO Distributors website","Status":"Done"},{"Task":"Add Financial Reports","Status":"Done"},{"Task":"Add Analytics / Monitoring titles","Status":"Done"}])
-    st.markdown("---"); st.subheader("Export CSV"); export_csv(at_df, "agent_tasks.csv")
-
 elif menu == "Analytics":
     bar("Analytics")
     st.markdown("<div class='info-box'>Analytics - same titles as in your video: Visitors, Page views, Channels, Top sources, Top pages, Entry pages, Countries, Devices, Browsers, Creators & AI Assistants.</div>", unsafe_allow_html=True)
-    # Real data from your business = page views = how many times each sheet was used
     page_views = pd.DataFrame([
         ["Dashboard", len(sales)+len(purch), len(sales)],
         ["Products", len(prods), len(prods)],
@@ -524,31 +484,6 @@ elif menu == "Monitoring":
     mon_df = pd.DataFrame([{"Metric":"Requests","Value":total_req if total_req else 32},{"Metric":"Errors","Value":0},{"Metric":"Database Time (ms)","Value":536}])
     st.markdown("---"); st.subheader("Export CSV"); export_csv(mon_df, "monitoring.csv")
 
-elif menu == "Code":
-    bar("Code")
-    st.markdown("<div class='info-box'>Code - Your full app.py code. This is the same file you paste in Hatchable / Streamlit.</div>", unsafe_allow_html=True)
-    st.code("app.py - NESCO Distributors - Streamlit + Supabase\n- Dashboard, Financial Reports, Analytics, Monitoring, Overview\n- Products, Purchases, Sales, Inventory Summary, Expenses, Investment, Withdrawals\n- Excel / CSV Upload + Auto-Save Excel\n- Font: Times New Roman | Sidebar: Light Brown #B9937B | NESCO: White Bold | >> icon at top\n- Export CSV: Only at end of each page")
-    legend_table([["File", "app.py - Main file"], ["Language", "Python + Streamlit"], ["Database", "Supabase"]])
-    code_df = pd.DataFrame([{"File":"app.py","Lines":"Full Code - See Chat"}])
-    st.markdown("---"); st.subheader("Export CSV"); export_csv(code_df, "code.csv")
-
-elif menu == "Database":
-    bar("Database")
-    st.markdown("<div class='info-box'>Database - Supabase tables. Same titles as in your video: Tables, Functions, Resources.</div>", unsafe_allow_html=True)
-    db_df = pd.DataFrame([
-        ["products", len(prods), "Product Master"],
-        ["purchases", len(purch), "Purchase Batches"],
-        ["sales", len(sales), "Sales Records"],
-        ["expenses", len(exps), "General Expenses"],
-        ["investment", len(inv), "Capital Invested"],
-        ["withdrawals", len(wd), "Profit Withdrawn"],
-        ["notes", len(notes), "Notes & Guide"],
-    ], columns=["Table","Rows","What It Stores"])
-    st.dataframe(db_df, use_container_width=True)
-    subbar("Resources")
-    legend_table([["Tables", "7"], ["Functions", "1 - api/business"], ["Agent Tasks", "1"]])
-    st.markdown("---"); st.subheader("Export CSV"); export_csv(db_df, "database.csv")
-
 elif menu == "Collaborators":
     bar("Collaborators")
     st.markdown("<div class='info-box'>Collaborators - Who can access this project. Manage access from here.</div>", unsafe_allow_html=True)
@@ -556,19 +491,6 @@ elif menu == "Collaborators":
     st.dataframe(collab_df, use_container_width=True)
     st.markdown("<div class='info-box'>To add someone: Settings > Collaborators > Invite by email. To remove: Remove from list.</div>", unsafe_allow_html=True)
     st.markdown("---"); st.subheader("Export CSV"); export_csv(collab_df, "collaborators.csv")
-
-elif menu == "Settings":
-    bar("Settings")
-    st.markdown("<div class='info-box'>Settings - Same titles as in your video: Visibility, Custom Domain, Free Plan, Upgrade.</div>", unsafe_allow_html=True)
-    subbar("Visibility")
-    st.markdown("<div class='info-box'><b>Private</b> - Only authorized person can open. Open to edit: Private Mode ON 🔒</div>", unsafe_allow_html=True)
-    subbar("Custom Domain")
-    st.markdown("<div class='info-box'>Custom domain: Not set yet. You can add your own domain in Hatchable Settings.</div>", unsafe_allow_html=True)
-    subbar("Plan")
-    st.markdown("<div class='info-box'><b>Free Plan</b> - You are on Free Plan. Upgrade to Builder for more features.</div>", unsafe_allow_html=True)
-    if st.button("Upgrade to Builder"): st.info("Open Hatchable > Upgrade to Builder to upgrade.")
-    set_df = pd.DataFrame([["Visibility","Private"],["Plan","Free Plan"],["Custom Domain","Not Set"]], columns=["Setting","Value"])
-    st.markdown("---"); st.subheader("Export CSV"); export_csv(set_df, "settings.csv")
 
 elif menu == "Notes":
     bar("Notes & How-To Guide")
