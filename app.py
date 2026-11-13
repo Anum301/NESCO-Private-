@@ -33,16 +33,19 @@ h1,h2,h3 { color: #714329 !important; font-family: 'Times New Roman', Times, ser
 .stDownloadButton>button:hover { background: #714329 !important; box-shadow: 0 8px 20px rgba(113,67,41,0.35) !important; transform: translateY(-2px) scale(1.02) !important; }
 .stTextInput input, .stNumberInput input, .stSelectbox, .stTextArea textarea { font-family: 'Times New Roman', Times, serif !important; font-size: 16px !important; }
 .stTextInput input:hover, .stNumberInput input:hover { border-color: #714329 !important; box-shadow: 0 0 0 3px rgba(208,185,167,0.4) !important; }
-/* SIDEBAR - LIGHT BROWN + VISIBLE TEXT - FIXED */
+/* SIDEBAR - LIGHT BROWN + VISIBLE TEXT */
 section[data-testid="stSidebar"] { background: #B9937B !important; }
 section[data-testid="stSidebar"] > div { background: #B9937B !important; }
 section[data-testid="stSidebar"] .sidebar-title { color: #714329 !important; font-weight: 900 !important; letter-spacing: 1px; font-size: 15px !important; margin: 18px 0 8px 0 !important; font-family: 'Times New Roman', Times, serif !important; }
-section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span, section[data-testid="stSidebar"] div { color: #3A2115 !important; font-family: 'Times New Roman', Times, serif !important; }
+section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span { color: #3A2115 !important; font-family: 'Times New Roman', Times, serif !important; }
 section[data-testid="stSidebar"] button { background: #FFFFFF !important; color: #714329 !important; font-weight: 800 !important; border-radius: 12px !important; width: 100% !important; border: 1.5px solid #D0B9A7 !important; font-family: 'Times New Roman', Times, serif !important; font-size: 16px !important; }
 section[data-testid="stSidebar"] button * { color: #714329 !important; font-family: 'Times New Roman', Times, serif !important; }
 section[data-testid="stSidebar"] button p, section[data-testid="stSidebar"] button span { color: #714329 !important; font-family: 'Times New Roman', Times, serif !important; }
 section[data-testid="stSidebar"] button:hover { background: #F7F1EB !important; color: #714329 !important; box-shadow: 0 6px 18px rgba(113,67,41,0.25) !important; transform: translateX(4px) scale(1.02) !important; border: 2px solid #714329 !important; }
 section[data-testid="stSidebar"] button:hover * { color: #714329 !important; }
+/* NESCO WHITE - FORCE WHITE, DO NOT LET SIDEBAR CSS MAKE IT DARK */
+.nesco-title { color: #FFFFFF !important; font-weight: 900 !important; font-family: 'Times New Roman', Times, serif !important; }
+.nesco-sub { color: #D0B9A7 !important; font-family: 'Times New Roman', Times, serif !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -79,7 +82,7 @@ def box(label, value):
 def bar(title): st.markdown(f"<div class='blue-bar'>{title}</div>", unsafe_allow_html=True)
 def subbar(title): st.markdown(f"<div class='sub-bar'>{title}</div>", unsafe_allow_html=True)
 def export_csv(df, filename):
-    # FIX: Show Export CSV ALWAYS - even if table is empty, so you can see it and download template
+    # Export CSV ONLY at END of each page - always visible even if empty
     if df is None or df.empty:
         template = "Date,Product,Amount,Notes\n"
         if "investment" in filename.lower():
@@ -96,6 +99,10 @@ def export_csv(df, filename):
             template = "Date,Withdrawn By,Amount (PKR),Notes\n"
         elif "note" in filename.lower():
             template = "Date,Title,Note\n"
+        elif "dashboard" in filename.lower():
+            template = "Product,Total Revenue,Total Profit,Total Qty Sold,Total Qty Purchased,Remaining Stock,Remaining Value,Margin %\n"
+        elif "inventory" in filename.lower():
+            template = "Product,Total Qty Purchased,Total Qty Sold,Remaining Stock,Avg Cost/Unit,Remaining Value,Total Revenue,Total Profit,Margin %\n"
         st.download_button("⬇️ Export CSV - Download Template", template, filename, "text/csv")
         st.caption("Table is empty right now, so this is a blank template CSV with correct headings. Fill it and upload it from Excel / CSV Upload page.")
     else:
@@ -189,12 +196,13 @@ def calc_sales_enriched(sales, avg_map, prods):
     df["payment_status"] = df.apply(lambda r: "Paid" if r["outstanding"] <= 0 else ("Partial" if r["received"]>0 else "Unpaid"), axis=1)
     return df
 
-# --- SIDEBAR: DASHBOARD & NOTES AS 2 SEPARATE TITLES - COMPANY SYMBOL, LIGHT BROWN ---
+# --- SIDEBAR: >> ICON AT START + NESCO IN WHITE BOLD + LIGHT BROWN ---
+st.sidebar.markdown("<div style='font-size:22px; color:#714329; font-weight:900; font-family: Times New Roman, Times, serif; margin-bottom:8px;'>&gt;&gt;</div>", unsafe_allow_html=True)
 st.sidebar.markdown("""
 <div style='background:#714329; padding:14px 12px; border-radius:14px; text-align:center; font-family: Times New Roman, Times, serif;'>
     <div style='font-size:36px;'>🏢</div>
-    <div style='font-size:28px; font-weight:900; color:white; letter-spacing:1px; font-family: Times New Roman, Times, serif;'>NESCO</div>
-    <div style='font-size:14px; color:#D0B9A7; font-weight:600; font-family: Times New Roman, Times, serif;'>Distributors</div>
+    <div class='nesco-title' style='font-size:28px; letter-spacing:1px;'>NESCO</div>
+    <div class='nesco-sub' style='font-size:14px; font-weight:600;'>Distributors</div>
 </div>
 """, unsafe_allow_html=True)
 if "menu" not in st.session_state: st.session_state.menu = "Dashboard"
@@ -311,6 +319,10 @@ if menu == "Dashboard":
         ["Total Withdrawal (Profit Kept Aside)", "Sum of everything on the Withdrawals sheet - money taken out of the business and not reinvested. Subtracted from Cash at Hand only. Profit and Margin figures are unaffected, since that money was still genuinely earned."],
         ["How to record a withdrawal", "Add a row in the Withdrawals sheet (Date, Amount, Notes) any time profit is taken out of the business rather than reinvested. It reduces Cash at Hand immediately - it does not touch Profit."],
     ])
+    # EXPORT CSV - ONLY AT END OF PAGE
+    st.markdown("---")
+    st.subheader("Export CSV")
+    export_csv(recap_df, "dashboard.csv")
 
 elif menu == "Notes":
     bar("Notes & How-To Guide")
@@ -322,8 +334,7 @@ elif menu == "Notes":
         n = st.text_area("Note")
         if st.form_submit_button("Save Note"):
             if save("notes", {"date": str(d), "title": t, "note": n}): st.success("Saved! Dashboard auto-updated."); st.rerun()
-    if not notes.empty: st.dataframe(notes, use_container_width=True); export_csv(notes, "notes.csv")
-    else: export_csv(notes, "notes.csv")
+    if not notes.empty: st.dataframe(notes, use_container_width=True)
     bar("WORKBOOK MAP")
     legend_table([
         ["Dashboard", "Summary of the whole business, updates automatically"],
@@ -383,6 +394,10 @@ elif menu == "Notes":
     st.markdown("<div class='info-box'>The Sales sheet is pre-built down to row 200. To log a sale, just fill Date, Product (dropdown), Customer, Qty and Amount Received on the next empty row. Sale Rate, Revenue, Avg Cost, COGS, Profit, Margin, Outstanding and Payment Status all calculate the moment you pick the product and enter the quantity. Use Discount (PKR) for any amount you forgive, use Rate Override (PKR) only for a one-off special price. Both stay blank normally.</div>", unsafe_allow_html=True)
     bar("PURCHASES - DEFAULT SALE RATE SHOWN NEXT TO PURCHASE RATE")
     st.markdown("<div class='info-box'>The Purchases sheet now has a 'Default Sale Rate (PKR)' column right after 'Purchase Rate (PKR)'. It pulls each product's selling price from the Products sheet. It is there purely for reference while you enter a purchase - so you can see your margin at a glance (e.g. buying Sugar at 7000 when the sale rate is also 7000). It is there purely for reference while you enter a purchase.</div>", unsafe_allow_html=True)
+    # EXPORT CSV - ONLY AT END OF PAGE
+    st.markdown("---")
+    st.subheader("Export CSV")
+    export_csv(notes, "notes.csv")
 
 elif menu == "Products":
     bar("Products")
@@ -395,9 +410,13 @@ elif menu == "Products":
         if st.form_submit_button("Save Product"):
             if save("products", {"product": p, "category": cat, "price": rate, "notes": nt}): st.success("Saved!"); st.rerun()
     st.subheader("All Products")
-    st.dataframe(prods, use_container_width=True); export_csv(prods, "products.csv")
+    st.dataframe(prods, use_container_width=True)
     bar("HOW TO USE - PRODUCTS")
     legend_table([["Default Sale Rate", "Normal selling price for this product. Sales will use this unless Rate Override is given."],["Category", "For your own grouping - e.g. Milk / Carton, Biscuit, etc."]])
+    # EXPORT CSV - ONLY AT END OF PAGE
+    st.markdown("---")
+    st.subheader("Export CSV")
+    export_csv(prods, "products.csv")
 
 elif menu == "Purchases":
     bar("Purchases")
@@ -410,9 +429,13 @@ elif menu == "Purchases":
         if st.form_submit_button("Save Purchase"):
             if save("purchases", {"date": str(d), "product": prod, "quantity": qty, "cost": cost, "total": qty*cost, "notes": nt}): st.success("Saved!"); st.rerun()
     st.subheader("All Purchases")
-    st.dataframe(purch, use_container_width=True); export_csv(purch, "purchases.csv")
+    st.dataframe(purch, use_container_width=True)
     bar("HOW TO USE - PURCHASES")
     legend_table([["Total Cost (PKR)", "Qty Purchased x Purchase Cost/Unit - calculates automatically."],["Weighted Avg Cost", "Total Purchase Cost / Total Qty Purchased. New batch at new cost changes the average for all future sales."]])
+    # EXPORT CSV - ONLY AT END OF PAGE
+    st.markdown("---")
+    st.subheader("Export CSV")
+    export_csv(purch, "purchases.csv")
 
 elif menu == "Sales":
     bar("Sales")
@@ -434,7 +457,7 @@ elif menu == "Sales":
     disp = sales.copy()
     rename = {"date":"Date","product":"Product","customer":"Customer","quantity":"Qty Sold","effective_rate":"Sale Rate (PKR)","revenue":"Revenue (PKR)","avg_cost":"Avg Cost/Unit","cogs":"COGS (PKR)","profit":"Profit (PKR)","margin":"Margin %","received":"Amount Received","outstanding":"Amount Outstanding","payment_status":"Payment Status","discount":"Discount (PKR)","rate_override":"Rate Override"}
     disp = disp[[c for c in show_cols if c in disp.columns]].rename(columns=rename)
-    st.dataframe(disp, use_container_width=True); export_csv(disp, "sales.csv")
+    st.dataframe(disp, use_container_width=True)
     if not disp.empty:
         st.plotly_chart(px.bar(sales, x="product", y="revenue", title="Revenue by Product", color_discrete_sequence=["#714329","#B08463","#B9937B"]), use_container_width=True)
     bar("HOW TO USE - SALES")
@@ -446,10 +469,15 @@ elif menu == "Sales":
         ["Amount Outstanding", "Revenue - Amount Received. Money still to collect."],
         ["Payment Status", "Paid if Outstanding = 0, Partial if some received, Unpaid if nothing received."],
     ])
+    # EXPORT CSV - ONLY AT END OF PAGE
+    st.markdown("---")
+    st.subheader("Export CSV")
+    export_csv(disp, "sales.csv")
 
 elif menu == "Inventory Summary":
     bar("Inventory Summary")
     st.markdown("<div class='info-box'>One row per product, pulled from Purchases and Sales. Nothing here to type - add a product in the Products sheet and it appears here automatically.</div>", unsafe_allow_html=True)
+    idf = pd.DataFrame()
     if not prods.empty:
         rows=[]
         for _, pr in prods.iterrows():
@@ -461,10 +489,14 @@ elif menu == "Inventory Summary":
             prof = sales[sales["product"]==pname]["profit"].sum() if not sales.empty else 0
             rows.append({"Product": pname, "Total Qty Purchased": pq, "Total Qty Sold": sq, "Remaining Stock": rem, "Avg Cost/Unit": round(avgc,2), "Remaining Value": round(rem*avgc,2), "Total Revenue": round(rev,2), "Total Profit": round(prof,2), "Margin %": round((prof/rev*100) if rev else 0,2)})
         idf = pd.DataFrame(rows)
-        st.dataframe(idf, use_container_width=True); export_csv(idf, "inventory_summary.csv")
-    else: st.info("No product yet."); export_csv(prods, "inventory_summary.csv")
+        st.dataframe(idf, use_container_width=True)
+    else: st.info("No product yet.")
     bar("HOW TO USE - INVENTORY SUMMARY")
     legend_table([["Remaining Stock", "Total Qty Purchased - Total Qty Sold."],["Remaining Value", "Remaining Stock x Avg Cost/Unit."],["Do Not Type Here", "This sheet is formula only. Type in Products, Purchases and Sales."]])
+    # EXPORT CSV - ONLY AT END OF PAGE
+    st.markdown("---")
+    st.subheader("Export CSV")
+    export_csv(idf, "inventory_summary.csv")
 
 elif menu == "Expenses":
     bar("Expenses")
@@ -477,9 +509,13 @@ elif menu == "Expenses":
         if st.form_submit_button("Save Expense"):
             if save("expenses", {"date": str(d), "expense": e, "amount": a, "notes": nt}): st.success("Saved!"); st.rerun()
     st.subheader("All Expenses")
-    st.dataframe(exps, use_container_width=True); export_csv(exps, "expenses.csv")
+    st.dataframe(exps, use_container_width=True)
     bar("HOW TO USE - EXPENSES")
     legend_table([["Expense", "Any business cost other than buying stock - e.g. Rent, Transport, Wages."],["Total Expenses", "Reduces Cash at Hand. Does NOT change COGS or Gross Profit directly."]])
+    # EXPORT CSV - ONLY AT END OF PAGE
+    st.markdown("---")
+    st.subheader("Export CSV")
+    export_csv(exps, "expenses.csv")
 
 elif menu == "Investment":
     bar("Investment")
@@ -492,10 +528,14 @@ elif menu == "Investment":
         if st.form_submit_button("Save Investment"):
             if save("investment", {"owner": o, "amount": a, "date": str(d), "note": nt}): st.success("Saved!"); st.rerun()
     st.subheader("All Investment")
-    st.dataframe(inv, use_container_width=True); export_csv(inv, "investment.csv")
+    st.dataframe(inv, use_container_width=True)
     st.metric("Total Capital Invested", f"Rs {total_inv_amt:,.0f}")
     bar("HOW TO USE - INVESTMENT")
     legend_table([["Total Capital Invested", "Sum of all Investment. Starting money for the business. Increases Cash at Hand."]])
+    # EXPORT CSV - ONLY AT END OF PAGE
+    st.markdown("---")
+    st.subheader("Export CSV")
+    export_csv(inv, "investment.csv")
 
 elif menu == "Withdrawals":
     bar("Withdrawals")
@@ -508,10 +548,14 @@ elif menu == "Withdrawals":
         if st.form_submit_button("Save Withdrawal"):
             if save("withdrawals", {"date": str(d), "person": p, "amount": a, "note": nt}): st.success("Saved!"); st.rerun()
     st.subheader("All Withdrawals")
-    st.dataframe(wd, use_container_width=True); export_csv(wd, "withdrawals.csv")
+    st.dataframe(wd, use_container_width=True)
     st.metric("Total Withdrawn", f"Rs {total_wd:,.0f}")
     bar("HOW TO USE - WITHDRAWALS")
     legend_table([["Total Withdrawn", "Profit taken home. Reduces Cash at Hand. NOT an expense, does NOT reduce Gross Profit."]])
+    # EXPORT CSV - ONLY AT END OF PAGE
+    st.markdown("---")
+    st.subheader("Export CSV")
+    export_csv(wd, "withdrawals.csv")
 
 elif menu == "Excel Upload":
     bar("Excel / CSV Upload - Data Directly From Excel To Website")
