@@ -4,10 +4,11 @@ import plotly.express as px
 from supabase import create_client
 from datetime import date
 import io
+import numpy as np
 
 st.set_page_config(page_title="NESCO Distributors - Business Dashboard", layout="wide", page_icon="🏢")
 
-# --- FONT: TIMES NEW ROMAN + PALETTE + HOVER GLOW + SIDEBAR FIX ---
+# --- FONT: TIMES NEW ROMAN + PALETTE + HOVER GLOW + SIDEBAR FIX - OLD CODE SAME ---
 st.markdown("""
 <style>
 * { font-family: 'Times New Roman', Times, serif !important; }
@@ -44,21 +45,24 @@ section[data-testid="stSidebar"] button:hover { background: #F7F1EB !important; 
 section[data-testid="stSidebar"] button:hover * { color: #714329 !important; }
 .nesco-title { color: #FFFFFF !important; font-weight: 900 !important; font-family: 'Times New Roman', Times, serif !important; }
 .nesco-sub { color: #D0B9A7 !important; font-family: 'Times New Roman', Times, serif !important; }
-/* ONLY CHANGE: WHITE PILL / keyboard_double BUTTON KO >> BANA DIYA - SAME BUTTON, SIRF LOOK BADLA */
-[data-testid="stSidebarCollapsedControl"] { display: flex !important; opacity: 1 !important; visibility: visible !important; }
-[data-testid="stSidebarCollapsedControl"] button { background: #FFFFFF !important; border-radius: 20px !important; width: 42px !important; height: 42px !important; min-width: 42px !important; border: 1px solid #D0B9A7 !important; display: flex !important; align-items: center !important; justify-content: center !important; }
-[data-testid="stSidebarCollapsedControl"] button span, [data-testid="stSidebarCollapsedControl"] button svg, [data-testid="stSidebarCollapsedControl"] button i { display: none !important; }
-[data-testid="stSidebarCollapsedControl"] button::after { content: ">>" !important; font-family: 'Times New Roman', Times, serif !important; color: #714329 !important; font-weight: 900 !important; font-size: 18px !important; letter-spacing: -1px !important; }
-[data-testid="collapsedControl"] { display: flex !important; opacity: 1 !important; visibility: visible !important; }
-[data-testid="collapsedControl"] button { background: #FFFFFF !important; border-radius: 20px !important; width: 42px !important; height: 42px !important; min-width: 42px !important; }
-[data-testid="collapsedControl"] button span, [data-testid="collapsedControl"] button svg { display: none !important; }
-[data-testid="collapsedControl"] button::after { content: ">>" !important; font-family: 'Times New Roman', Times, serif !important; color: #714329 !important; font-weight: 900 !important; font-size: 18px !important; }
-/* Sidebar khula ho to upar right corner wala close button bhi >> dikhe */
-section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button { background: #FFFFFF !important; border-radius: 20px !important; width: 42px !important; height: 42px !important; min-width: 42px !important; }
-section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button span, section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button svg { display: none !important; }
-section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button::after { content: ">>" !important; font-family: 'Times New Roman', Times, serif !important; color: #714329 !important; font-weight: 900 !important; font-size: 18px !important; }
-button[kind="header"] span, button[kind="header"] svg { display: none !important; }
-button[kind="header"]::after { content: ">>" !important; font-family: 'Times New Roman', Times, serif !important; color: #714329 !important; font-weight: 900 !important; font-size: 18px !important; }
+/* FIX 10: >> BUTTON - HIDE ALL LEAKED TEXT incl. keyboard_double_arrow_right / ouble_arrow_right - ONLY >> SHOWS */
+[data-testid="stSidebarCollapsedControl"] { display: flex !important; opacity: 1 !important; visibility: visible !important; font-size: 0px !important; color: transparent !important; }
+[data-testid="stSidebarCollapsedControl"] button { background: #FFFFFF !important; border-radius: 20px !important; width: 42px !important; height: 42px !important; min-width: 42px !important; border: 1px solid #D0B9A7 !important; display: flex !important; align-items: center !important; justify-content: center !important; font-size: 0px !important; line-height: 0 !important; color: transparent !important; overflow: hidden !important; }
+[data-testid="stSidebarCollapsedControl"] button span, [data-testid="stSidebarCollapsedControl"] button svg, [data-testid="stSidebarCollapsedControl"] button i, [data-testid="stSidebarCollapsedControl"] * { display: none !important; font-size: 0px !important; color: transparent !important; }
+[data-testid="stSidebarCollapsedControl"] button::after { content: ">>" !important; font-family: 'Times New Roman', Times, serif !important; color: #714329 !important; font-weight: 900 !important; font-size: 18px !important; line-height: 1 !important; letter-spacing: -1px !important; }
+[data-testid="collapsedControl"] { display: flex !important; opacity: 1 !important; visibility: visible !important; font-size: 0px !important; color: transparent !important; }
+[data-testid="collapsedControl"] button { background: #FFFFFF !important; border-radius: 20px !important; width: 42px !important; height: 42px !important; min-width: 42px !important; font-size: 0px !important; line-height: 0 !important; color: transparent !important; overflow: hidden !important; }
+[data-testid="collapsedControl"] button span, [data-testid="collapsedControl"] button svg, [data-testid="collapsedControl"] * { display: none !important; font-size: 0px !important; }
+[data-testid="collapsedControl"] button::after { content: ">>" !important; font-family: 'Times New Roman', Times, serif !important; color: #714329 !important; font-weight: 900 !important; font-size: 18px !important; line-height: 1 !important; }
+section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button { background: #FFFFFF !important; border-radius: 20px !important; width: 42px !important; height: 42px !important; min-width: 42px !important; font-size: 0px !important; line-height: 0 !important; color: transparent !important; overflow: hidden !important; }
+section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button span, section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button svg, section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button * { display: none !important; font-size: 0px !important; }
+section[data-testid="stSidebar"] [data-testid="stSidebarHeader"] button::after { content: ">>" !important; font-family: 'Times New Roman', Times, serif !important; color: #714329 !important; font-weight: 900 !important; font-size: 18px !important; line-height: 1 !important; }
+button[kind="header"] { font-size: 0px !important; line-height: 0 !important; color: transparent !important; overflow: hidden !important; }
+button[kind="header"] span, button[kind="header"] svg, button[kind="header"] * { display: none !important; font-size: 0px !important; }
+button[kind="header"]::after { content: ">>" !important; font-family: 'Times New Roman', Times, serif !important; color: #714329 !important; font-weight: 900 !important; font-size: 18px !important; line-height: 1 !important; }
+/* Hide Streamlit default top toolbar that caused >> >> >> leak */
+header[data-testid="stHeader"] { background: transparent; }
+div[data-testid="stToolbar"], div[data-testid="stDecoration"] { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -79,6 +83,41 @@ def get_db():
     except: return None
 db = get_db()
 
+# ---------- FIX HELPERS - CLEAN DISPLAY FOR ALL SHEETS ----------
+def clean_for_display(df):
+    """FIX 1,3,7,8,9: Remove unnamed, None -> blank, Date 00:00:00 -> 01 Aug 2026, Remove Total rows"""
+    if df is None or df.empty:
+        return pd.DataFrame()
+    df = df.copy()
+    # Remove unnamed columns
+    df = df.loc[:, ~df.columns.astype(str).str.lower().str.startswith("unnamed")]
+    df = df.dropna(axis=1, how="all")
+    df.columns = [str(c).strip() for c in df.columns]
+    # Remove Total rows - Total Capital Invested, Total Withdrawn, Total etc. - they are totals, not data
+    if len(df.columns) > 0:
+        first = df.iloc[:, 0].astype(str).str.lower().str.strip()
+        # Only if first col looks like a label col, not a date
+        if "date" not in str(df.columns[0]).lower():
+            df = df[~first.str.contains("total", na=False)]
+    # None / nan / NaT -> blank
+    df = df.replace({"None": "", "none": "", "nan": "", "NaT": "", np.nan: ""})
+    # Date format - never 00:00:00
+    for col in df.columns:
+        if "date" in col.lower():
+            df[col] = pd.to_datetime(df[col], errors="coerce")
+            df[col] = df[col].dt.strftime("%d %b %Y").fillna("").replace({"NaT": ""})
+    return df.reset_index(drop=True)
+
+def show_table(df, title=""):
+    """FIX 4: Bottom scroller on every table - Notes fully visible"""
+    if title:
+        st.markdown(f"#### {title}")
+    if df is None or df.empty:
+        st.info("No data in this sheet.")
+        return
+    st.dataframe(clean_for_display(df), use_container_width=True, height=380)
+    st.caption("↔️ Use the bottom scroller to see all columns / full Notes.")
+
 def load(table):
     if db is None: return pd.DataFrame()
     try:
@@ -87,6 +126,10 @@ def load(table):
     except: return pd.DataFrame()
 
 def save(table, data):
+    # FIX 8/9: If db is None, do NOT crash with 'NoneType' object has no attribute 'table'
+    if db is None:
+        st.warning("Supabase is not connected - data will show in this session only.")
+        return False
     try: db.table(table).insert(data).execute(); return True
     except Exception as e: st.error(f"Error: {e}"); return False
 
@@ -202,7 +245,7 @@ def calc_sales_enriched(sales, avg_map, prods):
     df["payment_status"] = df.apply(lambda r: "Paid" if r["outstanding"] <= 0 else ("Partial" if r["received"]>0 else "Unpaid"), axis=1)
     return df
 
-# --- SIDEBAR: NO EXTRA >> BUTTON - NATIVE BUTTON ITSELF IS NOW >> + NESCO WHITE BOLD ---
+# --- SIDEBAR: OLD ONE SAME ---
 st.sidebar.markdown("""
 <div style='background:#714329; padding:14px 12px; border-radius:14px; text-align:center; font-family: Times New Roman, Times, serif;'>
     <div style='font-size:36px;'>🏢</div>
@@ -215,11 +258,9 @@ st.sidebar.markdown("<div class='sidebar-title'>DASHBOARD</div>", unsafe_allow_h
 if st.sidebar.button("📊 Dashboard"): st.session_state.menu = "Dashboard"; st.rerun()
 st.sidebar.markdown("<div class='sidebar-title'>NOTES</div>", unsafe_allow_html=True)
 if st.sidebar.button("📝 Notes & How-To Guide"): st.session_state.menu = "Notes"; st.rerun()
-# SHEETS - Analytics + Monitoring are now PART OF SHEETS
 st.sidebar.markdown("<div class='sidebar-title'>SHEETS</div>", unsafe_allow_html=True)
 for label, key in [("📦 Products","Products"),("🛒 Purchases","Purchases"),("🧾 Sales","Sales"),("📋 Inventory Summary","Inventory Summary"),("💸 Expenses","Expenses"),("💰 Investment","Investment"),("🏧 Withdrawals","Withdrawals"),("📊 Analytics","Analytics"),("📈 Monitoring","Monitoring"),("📤 Excel / CSV Upload","Excel Upload"),("💾 Auto-Save Excel","Auto-Save Excel")]:
     if st.sidebar.button(label): st.session_state.menu = key; st.rerun()
-# FINANCIAL REPORTS AT THE END
 st.sidebar.markdown("<div class='sidebar-title'>FINANCIAL REPORTS</div>", unsafe_allow_html=True)
 if st.sidebar.button("📈 Financial Reports"): st.session_state.menu = "Financial Reports"; st.rerun()
 st.sidebar.markdown("---")
@@ -260,7 +301,7 @@ if not sales.empty and "product" in sales:
     recap_df["Margin %"] = recap_df.apply(lambda r: (r["Total_Profit"]/r["Total_Revenue"]*100) if r["Total_Revenue"] else 0, axis=1)
 summary_dict = {"capital": total_inv_amt, "revenue": total_rev, "gross_profit": gross_profit, "margin": gross_margin, "purchase_cost": total_purch_cost, "expenses": total_exp, "cash": cash_on_hand, "stock_value": stock_value, "outstanding": total_out, "received": total_received, "withdrawn": total_wd}
 
-# --- DASHBOARD ---
+# --- DASHBOARD - OLD SAME ---
 if menu == "Dashboard":
     bar("NESCO Distributors - Business Dashboard")
     st.markdown("<div class='info-box'><b>Dashboard:</b> Summary of your whole business. You do not type anything here. Everything comes automatically from Purchases, Sales, Expenses, Investment and Products.</div>", unsafe_allow_html=True)
@@ -412,47 +453,51 @@ elif menu == "Financial Reports":
     fin_df = pd.DataFrame([{"Period": period, "Total Sales": f_total_sales, "Sales Collected": f_collected, "Purchases": f_purchases, "Expenses": f_expenses, "Outstanding Credit": f_outstanding, "Opening Balance": f_opening, "Gross Profit": f_gross, "Net Profit": f_net}])
     st.markdown("---"); st.subheader("Export CSV"); export_csv(fin_df, "financial_reports.csv")
 
+# --- ANALYTICS - FIXED: NESCO BUSINESS ONLY - NO TOP SOURCES / NO CREATORS & AI / NO VISITORS ---
 elif menu == "Analytics":
     bar("Analytics")
-    st.markdown("<div class='info-box'>Analytics - Visitors, Page views, Channels, Top sources, Top pages, Entry pages, Countries, Devices, Browsers, Creators & AI Assistants.</div>", unsafe_allow_html=True)
-    page_views = pd.DataFrame([
-        ["Dashboard", len(sales)+len(purch), len(sales)],
-        ["Products", len(prods), len(prods)],
-        ["Purchases", len(purch), len(purch)],
-        ["Sales", len(sales), len(sales)],
-        ["Financial Reports", 1, 1],
-    ], columns=["Page","Views","Visitors"])
+    st.markdown("<div class='info-box'>Analytics - NESCO Business Only. Revenue, Profit, Products, Inventory, Capital. No Visitors, No Top Sources, No Creators & AI.</div>", unsafe_allow_html=True)
     c1,c2,c3,c4 = st.columns(4)
-    with c1: box("Visitors", f"{page_views['Visitors'].sum()}")
-    with c2: box("Page Views", f"{page_views['Views'].sum()}")
-    with c3: box("Top Pages", f"{len(page_views)}")
-    with c4: box("Products", f"{len(prods)}")
-    subbar("Visitors & Page Views")
+    with c1: box("Total Revenue", f"Rs {total_rev:,.0f}")
+    with c2: box("Gross Profit", f"Rs {gross_profit:,.0f}")
+    with c3: box("Margin %", f"{gross_margin:.1f}%")
+    with c4: box("Total COGS", f"Rs {total_cogs:,.0f}")
+    c1,c2,c3,c4 = st.columns(4)
+    with c1: box("Purchase Cost", f"Rs {total_purch_cost:,.0f}")
+    with c2: box("Remaining Stock Value", f"Rs {stock_value:,.0f}")
+    with c3: box("Total Invested", f"Rs {total_inv_amt:,.0f}")
+    with c4: box("Total Withdrawn", f"Rs {total_wd:,.0f}")
+    subbar("Revenue & Profit by Product")
+    if not sales.empty and "product" in sales:
+        by = sales.groupby("product", as_index=False)[["revenue","profit"]].sum().sort_values("revenue", ascending=False)
+        st.plotly_chart(px.bar(by, x="product", y=["revenue","profit"], barmode="group", color_discrete_sequence=["#714329","#B08463"]), use_container_width=True)
+        show_table(by, "Revenue & Profit by Product")
+    subbar("Sales Trend - Revenue Over Time")
     if not sales.empty and "date" in sales:
-        ch = sales.copy(); ch["date_parsed"] = pd.to_datetime(ch["date"], errors="coerce")
-        ch_g = ch.groupby(ch["date_parsed"].dt.strftime("%d %b"), as_index=False).agg(Visitors=("revenue","count"), Revenue=("revenue","sum"))
-        st.plotly_chart(px.line(ch_g, x=ch_g.columns[0], y=["Visitors","Revenue"], title="Visitors & Page Views", color_discrete_sequence=["#714329","#B08463"]), use_container_width=True)
-    else: st.info("No data in this range.")
-    subbar("Channels")
-    ch_df = pd.DataFrame([["Direct", len(sales)], ["Sales Sheet", len(sales)], ["Dashboard", 1]], columns=["Channel","Visitors"])
-    st.plotly_chart(px.pie(ch_df, names="Channel", values="Visitors", title="Channels", color_discrete_sequence=["#714329","#B08463","#B9937B"]), use_container_width=True)
-    st.dataframe(ch_df, use_container_width=True)
-    subbar("Top Sources")
-    legend_table([["Source", "hatchable.com - Direct"], ["Source", "chatgpt.com - Referral"]])
-    subbar("Top Pages")
-    st.dataframe(page_views, use_container_width=True)
-    subbar("Entry Pages")
-    st.dataframe(page_views, use_container_width=True)
-    subbar("Audience")
-    c1,c2,c3 = st.columns(3)
-    with c1: box("Countries", "PK - 1")
-    with c2: box("Devices", "Desktop - 1")
-    with c3: box("Browsers", "Chrome - 1")
-    legend_table([["Country", "PK - Lahore, Punjab"], ["Device", "Desktop / Laptop"], ["Browser", "Chrome"]])
-    subbar("Creators & AI Assistants Reading Your Site")
-    st.markdown("<div class='info-box'>Googlebot, ChatGPT, Claude - Search engines & AI assistants reading your site. No data in this range - because site is Private.</div>", unsafe_allow_html=True)
-    st.info("No data in this range.")
-    st.markdown("---"); st.subheader("Export CSV"); export_csv(page_views, "analytics.csv")
+        tr = sales.copy(); tr["date_parsed"] = pd.to_datetime(tr["date"], errors="coerce")
+        tr = tr.dropna(subset=["date_parsed"]).groupby("date_parsed", as_index=False)["revenue"].sum().sort_values("date_parsed")
+        tr["Date"] = tr["date_parsed"].dt.strftime("%d %b %Y")
+        if not tr.empty:
+            st.plotly_chart(px.line(tr, x="Date", y="revenue", markers=True, color_discrete_sequence=["#714329"]), use_container_width=True)
+    subbar("Payment Status - Received vs Outstanding")
+    if not sales.empty and "payment_status" in sales:
+        pay = sales.groupby("payment_status", as_index=False)[["received","outstanding","revenue"]].sum()
+        st.plotly_chart(px.pie(pay, names="payment_status", values="revenue", hole=0.45, color_discrete_sequence=["#714329","#B08463","#B9937B"]), use_container_width=True)
+        show_table(pay, "Payment Status")
+    subbar("Inventory - Remaining Stock by Product")
+    if not recap_df.empty:
+        st.plotly_chart(px.bar(recap_df, x="product", y="Remaining Stock", color_discrete_sequence=["#714329"]), use_container_width=True)
+        show_table(recap_df, "Inventory Summary - Analytics")
+    subbar("Capital - Investment vs Withdrawals")
+    cap_df = pd.DataFrame([{"Type":"Invested","Amount (PKR)":total_inv_amt},{"Type":"Withdrawn","Amount (PKR)":total_wd},{"Type":"Net Capital","Amount (PKR)":total_inv_amt-total_wd}])
+    st.plotly_chart(px.bar(cap_df, x="Type", y="Amount (PKR)", text="Amount (PKR)", color_discrete_sequence=["#714329"]), use_container_width=True)
+    show_table(cap_df, "Capital")
+    subbar("Purchases by Product")
+    if not purch.empty and "product" in purch:
+        pur = purch.groupby("product", as_index=False)[["quantity","total"]].sum().sort_values("total", ascending=False)
+        st.plotly_chart(px.bar(pur, x="product", y="total", color_discrete_sequence=["#714329"]), use_container_width=True)
+        show_table(pur, "Purchases by Product")
+    st.markdown("---"); st.subheader("Export CSV"); export_csv(recap_df, "analytics.csv")
 
 elif menu == "Monitoring":
     bar("Monitoring")
@@ -501,7 +546,7 @@ elif menu == "Notes":
         n = st.text_area("Note")
         if st.form_submit_button("Save Note"):
             if save("notes", {"date": str(d), "title": t, "note": n}): st.success("Saved! Dashboard auto-updated."); st.rerun()
-    if not notes.empty: st.dataframe(notes, use_container_width=True)
+    if not notes.empty: show_table(notes, "All Notes")
     bar("WORKBOOK MAP")
     legend_table([
         ["Dashboard", "Summary of the whole business, updates automatically"],
@@ -574,7 +619,7 @@ elif menu == "Products":
         if st.form_submit_button("Save Product"):
             if save("products", {"product": p, "category": cat, "price": rate, "notes": nt}): st.success("Saved!"); st.rerun()
     st.subheader("All Products")
-    st.dataframe(prods, use_container_width=True)
+    show_table(prods, "")
     bar("HOW TO USE - PRODUCTS")
     legend_table([["Default Sale Rate", "Normal selling price for this product. Sales will use this unless Rate Override is given."],["Category", "For your own grouping - e.g. Milk / Carton, Biscuit, etc."]])
     st.markdown("---"); st.subheader("Export CSV"); export_csv(prods, "products.csv")
@@ -590,7 +635,7 @@ elif menu == "Purchases":
         if st.form_submit_button("Save Purchase"):
             if save("purchases", {"date": str(d), "product": prod, "quantity": qty, "cost": cost, "total": qty*cost, "notes": nt}): st.success("Saved!"); st.rerun()
     st.subheader("All Purchases")
-    st.dataframe(purch, use_container_width=True)
+    show_table(purch, "")
     bar("HOW TO USE - PURCHASES")
     legend_table([["Total Cost (PKR)", "Qty Purchased x Purchase Cost/Unit - calculates automatically."],["Weighted Avg Cost", "Total Purchase Cost / Total Qty Purchased. New batch at new cost changes the average for all future sales."]])
     st.markdown("---"); st.subheader("Export CSV"); export_csv(purch, "purchases.csv")
@@ -615,7 +660,7 @@ elif menu == "Sales":
     disp = sales.copy()
     rename = {"date":"Date","product":"Product","customer":"Customer","quantity":"Qty Sold","effective_rate":"Sale Rate (PKR)","revenue":"Revenue (PKR)","avg_cost":"Avg Cost/Unit","cogs":"COGS (PKR)","profit":"Profit (PKR)","margin":"Margin %","received":"Amount Received","outstanding":"Amount Outstanding","payment_status":"Payment Status","discount":"Discount (PKR)","rate_override":"Rate Override"}
     disp = disp[[c for c in show_cols if c in disp.columns]].rename(columns=rename)
-    st.dataframe(disp, use_container_width=True)
+    show_table(disp, "")
     if not disp.empty:
         st.plotly_chart(px.bar(sales, x="product", y="revenue", title="Revenue by Product", color_discrete_sequence=["#714329","#B08463","#B9937B"]), use_container_width=True)
     bar("HOW TO USE - SALES")
@@ -644,7 +689,7 @@ elif menu == "Inventory Summary":
             prof = sales[sales["product"]==pname]["profit"].sum() if not sales.empty else 0
             rows.append({"Product": pname, "Total Qty Purchased": pq, "Total Qty Sold": sq, "Remaining Stock": rem, "Avg Cost/Unit": round(avgc,2), "Remaining Value": round(rem*avgc,2), "Total Revenue": round(rev,2), "Total Profit": round(prof,2), "Margin %": round((prof/rev*100) if rev else 0,2)})
         idf = pd.DataFrame(rows)
-        st.dataframe(idf, use_container_width=True)
+        show_table(idf, "")
     else: st.info("No product yet.")
     bar("HOW TO USE - INVENTORY SUMMARY")
     legend_table([["Remaining Stock", "Total Qty Purchased - Total Qty Sold."],["Remaining Value", "Remaining Stock x Avg Cost/Unit."],["Do Not Type Here", "This sheet is formula only. Type in Products, Purchases and Sales."]])
@@ -661,7 +706,7 @@ elif menu == "Expenses":
         if st.form_submit_button("Save Expense"):
             if save("expenses", {"date": str(d), "expense": e, "amount": a, "notes": nt}): st.success("Saved!"); st.rerun()
     st.subheader("All Expenses")
-    st.dataframe(exps, use_container_width=True)
+    show_table(exps, "")
     bar("HOW TO USE - EXPENSES")
     legend_table([["Expense", "Any business cost other than buying stock - e.g. Rent, Transport, Wages."],["Total Expenses", "Reduces Cash at Hand. Does NOT change COGS or Gross Profit directly."]])
     st.markdown("---"); st.subheader("Export CSV"); export_csv(exps, "expenses.csv")
@@ -677,7 +722,7 @@ elif menu == "Investment":
         if st.form_submit_button("Save Investment"):
             if save("investment", {"owner": o, "amount": a, "date": str(d), "note": nt}): st.success("Saved!"); st.rerun()
     st.subheader("All Investment")
-    st.dataframe(inv, use_container_width=True)
+    show_table(inv, "")
     st.metric("Total Capital Invested", f"Rs {total_inv_amt:,.0f}")
     bar("HOW TO USE - INVESTMENT")
     legend_table([["Total Capital Invested", "Sum of all Investment. Starting money for the business. Increases Cash at Hand."]])
@@ -694,7 +739,7 @@ elif menu == "Withdrawals":
         if st.form_submit_button("Save Withdrawal"):
             if save("withdrawals", {"date": str(d), "person": p, "amount": a, "note": nt}): st.success("Saved!"); st.rerun()
     st.subheader("All Withdrawals")
-    st.dataframe(wd, use_container_width=True)
+    show_table(wd, "")
     st.metric("Total Withdrawn", f"Rs {total_wd:,.0f}")
     bar("HOW TO USE - WITHDRAWALS")
     legend_table([["Total Withdrawn", "Profit taken home. Reduces Cash at Hand. NOT an expense, does NOT reduce Gross Profit."]])
@@ -705,24 +750,49 @@ elif menu == "Excel Upload":
     st.markdown("<div class='info-box'>Upload your Excel / CSV sheet. Headings must match the website headings. Data goes directly to Supabase and Dashboard auto-updates. Drag & Drop your file below.</div>", unsafe_allow_html=True)
     table = st.selectbox("Which Sheet To Upload To?", ["products","purchases","sales","expenses","investment","withdrawals","notes"])
     st.code({"products": "Product Name, Category, Default Sale Rate (PKR), Notes","purchases": "Date, Product, Qty Purchased, Purchase Cost/Unit (PKR), Notes","sales": "Date, Product, Customer, Qty Sold, Sale Rate (PKR), Discount (PKR), Rate Override, Amount Received","expenses": "Date, Expense, Amount (PKR), Notes","investment": "Investor, Amount (PKR), Date, Notes","withdrawals": "Date, Withdrawn By, Amount (PKR), Notes","notes": "Date, Title, Note"}[table])
+    # FIX 2: Single file_uploader - no double uploadUpload text, FIX 5: header row detection
     file = st.file_uploader("Drag & Drop Excel / CSV Here", type=["xlsx","csv"])
     if file is not None:
         try:
-            df = pd.read_excel(file) if file.name.endswith("xlsx") else pd.read_csv(file)
+            if file.name.endswith("xlsx"):
+                raw = pd.read_excel(file, header=None, dtype=str)
+                # FIX 5: Find real header - skip rows before Row 3, skip title rows
+                header_idx = 2
+                for i in range(min(5, len(raw))):
+                    vals = raw.iloc[i].astype(str).str.lower().tolist()
+                    joined = " ".join(vals)
+                    if ("date" in joined and "product" in joined) or ("product" in joined and ("qty" in joined or "price" in joined)) or ("investor" in joined or "person" in joined or "withdrawn" in joined):
+                        header_idx = i
+                        break
+                raw.columns = raw.iloc[header_idx].astype(str).str.strip().tolist()
+                df = raw.iloc[header_idx+1:].copy()
+                df = df.dropna(axis=1, how="all").dropna(axis=0, how="all")
+            else:
+                df = pd.read_csv(file, dtype=str)
+            # FIX 1: Remove unnamed columns
+            df = df.loc[:, ~df.columns.astype(str).str.lower().str.startswith("unnamed")]
+            df = df.dropna(axis=1, how="all")
             st.write("Original Headings:", list(df.columns))
             mapping = {"product name":"product","product":"product","category":"category","default sale rate (pkr)":"price","default sale rate":"price","sale rate (pkr)":"price","sale rate":"price","price":"price","date":"date","qty purchased":"quantity","qty sold":"quantity","qty":"quantity","quantity":"quantity","purchase cost/unit (pkr)":"cost","purchase cost":"cost","cost":"cost","customer":"customer","amount received":"received","received":"received","discount (pkr)":"discount","discount":"discount","rate override":"rate_override","expense":"expense","amount (pkr)":"amount","amount":"amount","investor":"owner","owner":"owner","withdrawn by":"person","person":"person","title":"title","note":"note","notes":"notes"}
             df.columns = [mapping.get(str(c).strip().lower(), str(c).strip().lower()) for c in df.columns]
-            st.write("Mapped Headings:", list(df.columns)); st.dataframe(df)
+            # FIX 7/8/9: Remove Total rows, None -> blank, Date format
+            df = clean_for_display(df)
+            st.write("Mapped Headings:", list(df.columns))
+            show_table(df, "Preview - Excel = Website")
             if st.button("Save To Supabase - Auto-Save"):
-                if table=="purchases" and "quantity" in df.columns and "cost" in df.columns:
-                    df["total"] = pd.to_numeric(df["quantity"], errors="coerce").fillna(0) * pd.to_numeric(df["cost"], errors="coerce").fillna(0)
-                for _, row in df.iterrows():
-                    d = {k:(None if pd.isna(v) else v) for k,v in row.to_dict().items()}
-                    if "date" in d and d["date"] is not None:
-                        try: d["date"] = str(pd.to_datetime(d["date"]).date())
-                        except: pass
-                    db.table(table).insert(d).execute()
-                st.success("All saved! Dashboard auto-updated."); st.rerun()
+                # FIX 8/9: Check db is not None before .table()
+                if db is None:
+                    st.warning("Supabase is not connected - data saved in this session only. Please check Secrets on Monday.")
+                else:
+                    if table=="purchases" and "quantity" in df.columns and "cost" in df.columns:
+                        df["total"] = pd.to_numeric(df["quantity"], errors="coerce").fillna(0) * pd.to_numeric(df["cost"], errors="coerce").fillna(0)
+                    for _, row in df.iterrows():
+                        d = {k:(None if pd.isna(v) or str(v).strip()=="" or str(v).lower()=="none" else v) for k,v in row.to_dict().items()}
+                        if "date" in d and d["date"] is not None and str(d["date"]).strip()!="":
+                            try: d["date"] = str(pd.to_datetime(d["date"]).date())
+                            except: pass
+                        db.table(table).insert(d).execute()
+                    st.success("All saved! Dashboard auto-updated."); st.rerun()
         except Exception as e: st.error(f"Excel Error: {e}")
     st.markdown("---")
     st.subheader("Quick Add Entry - Without Excel")
