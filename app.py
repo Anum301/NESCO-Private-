@@ -44,6 +44,12 @@ section[data-testid="stSidebar"] button:hover { background: #F7F1EB !important; 
 section[data-testid="stSidebar"] button:hover * { color: #714329 !important; }
 .nesco-title { color: #FFFFFF !important; font-weight: 900 !important; font-family: 'Times New Roman', Times, serif !important; }
 .nesco-sub { color: #D0B9A7 !important; font-family: 'Times New Roman', Times, serif !important; }
+/* REMOVE KEYBOARD_DOUBLE_ARROW LINE - HIDE STREAMLIT DEFAULT COLLAPSE BUTTON */
+[data-testid="stSidebarCollapsedControl"] { display: none !important; }
+[data-testid="collapsedControl"] { display: none !important; }
+button[kind="header"] { display: none !important; }
+header[data-testid="stHeader"] { display: none !important; }
+section[data-testid="stSidebar"] button[aria-label="Close sidebar"] { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
