@@ -6,62 +6,67 @@ from datetime import date
 import io
 import numpy as np
 
-# FIX: Sidebar ALWAYS expanded on load, native Streamlit arrow will show - no custom >> anymore
+# ---------- FIX: Sidebar ALWAYS expanded on load, native Streamlit arrow will show - no custom >> anymore
 st.set_page_config(page_title="NESCO Distributors - Business Dashboard", layout="wide", page_icon="🏢", initial_sidebar_state="expanded")
 
-# --- FONT: TIMES NEW ROMAN + PALETTE + HOVER GLOW - OLD CODE SAME ---
-# NOTE: Sidebar collapse CSS is DELETED on purpose - that CSS was hiding the sidebar button.
+# ---------- FONT: TIMES NEW ROMAN + PALETTE + HOVER GLOW - OLD CODE SAME ----------
+# NOTE: Sidebar collapse CSS IS DELETED on purpose - that CSS was hiding the sidebar button.
 # We do NOT touch [data-testid="stSidebarCollapsedControl"] or button[kind="header"] at all now.
 st.markdown("""
 <style>
-* { font-family: 'Times New Roman', Times, serif !important; }
-.stApp { background: #F7F1EB; }
-h1,h2,h3 { color: #714329 !important; font-family: 'Times New Roman', Times, serif !important; }
-.blue-bar { background: #714329; color: #FFFFFF !important; padding: 13px 16px; border-radius: 12px; font-weight: 800; font-size: 20px; margin: 16px 0 10px 0; transition: all 0.3s ease; font-family: 'Times New Roman', Times, serif !important; }
-.blue-bar:hover { box-shadow: 0 8px 24px rgba(113,67,41,0.35); transform: translateY(-2px); }
-.blue-bar * { color: white !important; font-family: 'Times New Roman', Times, serif !important; }
-.sub-bar { background: #B08463; color: white !important; padding: 10px 14px; border-radius: 10px; font-weight: 700; font-size: 17px; margin: 14px 0 8px 0; transition: all 0.3s ease; font-family: 'Times New Roman', Times, serif !important; }
-.sub-bar:hover { box-shadow: 0 8px 20px rgba(176,132,99,0.4); transform: translateY(-1px); }
-.sub-bar * { color: white !important; font-family: 'Times New Roman', Times, serif !important; }
-.finance-box { background: #FFFFFF; border: 1.5px solid #B5A192; border-radius: 14px; padding: 14px; text-align: center; box-shadow: 0 2px 12px rgba(113,67,41,0.08); transition: all 0.3s ease; cursor: pointer; font-family: 'Times New Roman', Times, serif !important; }
-.finance-box:hover { border: 2.5px solid #714329 !important; box-shadow: 0 12px 28px rgba(113,67,41,0.30), 0 0 0 4px rgba(208,185,167,0.35) !important; transform: translateY(-4px) scale(1.03); background: #FFFEFD !important; backdrop-filter: blur(4px); }
-.finance-box .label { color: #714329 !important; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; font-family: 'Times New Roman', Times, serif !important; }
-.finance-box .value { color: #714329 !important; font-size: 26px; font-weight: 900; font-family: 'Times New Roman', Times, serif !important; }
-.finance-box:hover .value { color: #B08463 !important; }
-.info-box { background: #D0B9A7; border: 1px solid #B5A192; border-radius: 12px; padding: 14px 16px; color: #2B1A12 !important; transition: all 0.3s ease; cursor: pointer; font-family: 'Times New Roman', Times, serif !important; font-size: 16px; }
-.info-box:hover { border: 2px solid #714329 !important; box-shadow: 0 10px 24px rgba(113,67,41,0.25) !important; transform: translateY(-2px); backdrop-filter: blur(3px); background: #E8D9CC !important; }
-.info-box * { color: #2B1A12 !important; font-family: 'Times New Roman', Times, serif !important; }
-.stButton>button { background: #714329 !important; color: white !important; font-weight: 800 !important; border-radius: 12px !important; border: none !important; transition: all 0.3s ease !important; font-family: 'Times New Roman', Times, serif !important; font-size: 16px !important; }
-.stButton>button:hover { background: #B08463 !important; box-shadow: 0 8px 20px rgba(113,67,41,0.35) !important; transform: translateY(-2px) scale(1.02) !important; border: 2px solid #714329 !important; }
-.stDownloadButton>button { background: #B08463 !important; color: white !important; font-weight: 800 !important; border-radius: 12px !important; border: none !important; transition: all 0.3s ease !important; font-family: 'Times New Roman', Times, serif !important; font-size: 16px !important; }
-.stDownloadButton>button:hover { background: #714329 !important; box-shadow: 0 8px 20px rgba(113,67,41,0.35) !important; transform: translateY(-2px) scale(1.02) !important; }
-.stTextInput input, .stNumberInput input, .stSelectbox, .stTextArea textarea { font-family: 'Times New Roman', Times, serif !important; font-size: 16px !important; }
-.stTextInput input:hover, .stNumberInput input:hover { border-color: #714329 !important; box-shadow: 0 0 0 3px rgba(208,185,167,0.4) !important; }
-section[data-testid="stSidebar"] { background: #B9937B !important; }
-section[data-testid="stSidebar"] > div { background: #B9937B !important; }
-section[data-testid="stSidebar"] .sidebar-title { color: #714329 !important; font-weight: 900 !important; letter-spacing: 1px; font-size: 15px !important; margin: 18px 0 8px 0 !important; font-family: 'Times New Roman', Times, serif !important; }
-section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span { color: #3A2115 !important; font-family: 'Times New Roman', Times, serif !important; }
-section[data-testid="stSidebar"] button { background: #FFFFFF !important; color: #714329 !important; font-weight: 800 !important; border-radius: 12px !important; width: 100% !important; border: 1.5px solid #D0B9A7 !important; font-family: 'Times New Roman', Times, serif !important; font-size: 16px !important; }
-section[data-testid="stSidebar"] button * { color: #714329 !important; font-family: 'Times New Roman', Times, serif !important; }
-section[data-testid="stSidebar"] button p, section[data-testid="stSidebar"] button span { color: #714329 !important; font-family: 'Times New Roman', Times, serif !important; }
-section[data-testid="stSidebar"] button:hover { background: #F7F1EB !important; color: #714329 !important; box-shadow: 0 6px 18px rgba(113,67,41,0.25) !important; transform: translateX(4px) scale(1.02) !important; border: 2px solid #714329 !important; }
-section[data-testid="stSidebar"] button:hover * { color: #714329 !important; }
-.nesco-title { color: #FFFFFF !important; font-weight: 900 !important; font-family: 'Times New Roman', Times, serif !important; }
-.nesco-sub { color: #D0B9A7 !important; font-family: 'Times New Roman', Times, serif !important; }
+* {font-family: 'Times New Roman', Times, serif !important;}
+h1, h2, h3 {color: #714329 !important; font-family: 'Times New Roman', Times, serif !important;}
+
+.blue-bar {background: #714329; color: #FFFFFF !important; padding: 13px 16px; border-radius: 12px; font-weight: 800; font-size: 20px; margin: 16px 0 10px 0; transition: all 0.3s ease; font-family: 'Times New Roman', Times, serif !important;}
+.blue-bar:hover {box-shadow: 0 8px 24px rgba(113,67,41,0.35); transform: translateY(-2px);}
+.blue-bar {color: white !important; font-family: 'Times New Roman', Times, serif !important;}
+
+.sub-bar {background: #B08463; color: white; margin: 14px 0 10px 0; padding: 10px 12px; border-radius: 10px; font-weight: 700; font-size: 17px; transition: all 0.3s ease; font-family: 'Times New Roman', Times, serif !important;}
+.sub-bar:hover {box-shadow: 0 8px 20px rgba(113,67,41,0.30); transform: translateY(-2px);}
+
+.finance-box {background: #FFF7ED; border: 1px solid #E8D5C4; border-radius: 12px; padding: 14px; text-align: center; transition: all 0.3s ease; cursor: pointer;}
+.finance-box:hover {border: 2px solid #714329 !important; box-shadow: 0 10px 24px rgba(113,67,41,0.25); transform: translateY(-2px);}
+.finance-box .label {color: #714329 !important; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; font-family: 'Times New Roman', Times, serif !important;}
+.finance-box .value {color: #714329 !important; font-size: 26px; font-weight: 900; font-family: 'Times New Roman', Times, serif !important;}
+
+.info-box {background: #DDB89A; border: 1px solid #B08463; border-radius: 12px; padding: 14px 16px; color: #2A1A12 !important; transition: all 0.3s ease; cursor: pointer; font-family: 'Times New Roman', Times, serif !important; font-size: 15px;}
+.info-box:hover {border: 2px solid #714329 !important; box-shadow: 0 10px 24px rgba(113,67,41,0.25); transform: translateY(-2px); backdrop-filter: blur(3px);}
+.info-box * {color: #2B1A12 !important; font-family: 'Times New Roman', Times, serif !important;}
+
+.stButton>button {background: #714329 !important; color: white !important; font-weight: 800; border-radius: 12px; border: none !important; transition: all 0.3s ease !important; font-family: 'Times New Roman', Times, serif !important;}
+.stButton>button:hover {background: #B08463 !important; box-shadow: 0 8px 20px rgba(113,67,41,0.40); transform: translateY(-2px) scale(1.02); color: white !important;}
+.stDownloadButton>button {background: #714329 !important; color: white !important; font-weight: 800; border-radius: 12px; border: none !important; transition: all 0.3s ease !important; font-family: 'Times New Roman', Times, serif !important;}
+.stDownloadButton>button:hover {background: #B08463 !important; box-shadow: 0 8px 20px rgba(113,67,41,0.40); transform: translateY(-2px) scale(1.02); color: white !important;}
+
+section[data-testid="stSidebar"] {background: #FFF7ED !important;}
+section[data-testid="stSidebar"] > div {background: #FFF7ED !important;}
+section[data-testid="stSidebar"] button {background: #FFFFFF !important; color: #714329 !important; font-weight: 700; font-size: 15px; border: 1px solid #E8D5C4 !important; border-radius: 10px; text-align: left; transition: all 0.3s ease !important; font-family: 'Times New Roman', Times, serif !important;}
+section[data-testid="stSidebar"] button:hover {background: #F7E8DB !important; color: #714329 !important; box-shadow: 0 6px 16px rgba(113,67,41,0.25); transform: translateX(2px) scale(1.02); border: 2px solid #714329 !important;}
+section[data-testid="stSidebar"] p, section[data-testid="stSidebar"] span {color: #714329 !important; font-family: 'Times New Roman', Times, serif !important;}
+section[data-testid="stSidebar"] button span {color: #714329 !important; font-family: 'Times New Roman', Times, serif !important;}
+section[data-testid="stSidebar"] button:hover span {color: #714329 !important;}
+
+.sidebar-title {color: #714329 !important; font-weight: 800; font-size: 13px; letter-spacing: 1px; margin: 14px 0 4px 0; font-family: 'Times New Roman', Times, serif !important;}
+.nesco-title {color: #FFFFFF !important; font-weight: 900; font-family: 'Times New Roman', Times, serif !important;}
+.nesco-sub {color: #FFD9B3 !important; font-weight: 600; font-family: 'Times New Roman', Times, serif !important;}
 </style>
 """, unsafe_allow_html=True)
 
-if "login" not in st.session_state: st.session_state.login = False
+# ---------- LOGIN - OLD SAME ----------
+if "login" not in st.session_state:
+    st.session_state.login = False
+
 if not st.session_state.login:
-    st.markdown("<div class='blue-bar' style='text-align:center'>🏢 NESCO - Private</div>", unsafe_allow_html=True)
-    st.write("For authorized person only.")
+    st.markdown("<div class='blue-bar' style='text-align:center;'>NESCO Private</div>", unsafe_allow_html=True)
+    st.write("For authorized person only")
     pw = st.text_input("Enter Password", type="password")
     if st.button("Login"):
         if pw == st.secrets.get("APP_PASSWORD", "Nesco123"):
-            st.session_state.login = True; st.rerun()
-        else: st.error("Wrong password!")
+            st.session_state.login = True
+            st.rerun()
+        else:
+            st.error("Wrong password")
     st.stop()
-
 @st.cache_resource
 def get_db():
     try: return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
