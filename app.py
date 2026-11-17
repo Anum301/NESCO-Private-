@@ -406,15 +406,23 @@ if not prods.empty:
         stock_value += (pq - sq) * avg_map.get(pname, 0)
 recap_df = pd.DataFrame()
 if not sales.empty and "product" in sales:
-    recap_df = sales.groupby("product").agg(**{"Total Revenue (PKR)": ("revenue", "sum"), "Total Profit (PKR)": ("profit", "sum"), "Total Qty Sold": ("quantity", "sum"), "Total COGS (PKR)": ("cogs", "sum")}).reset_index().rename(columns={"product": "Product"})
-    purch_g = purch.groupby("product").agg(**{"Total Qty Purchased": ("quantity", "sum"), "Total Purchase Cost (PKR)": ("total", "sum")}).reset_index().rename(columns={"product": "Product"}) if not purch.empty and "product" in purch else pd.DataFrame()
+    recap_df = sales.groupby("product").agg(**{"Total Revenue (PKR)": ("revenue", "sum"),
+        "Total Qty Sold": ("quantity", "sum"),
+        "Total Profit (PKR)": ("profit", "sum")}).reset_index().rename(columns={"product": "Product"})
+
+    # --- Safe purch_g, agar purch khali bhi ho to error nahi aayega ---
+    if not purch.empty and "product" in purch:
+        purch_g = purch.groupby("product").agg(**{"Total Qty Purchased": ("quantity", "sum"),
+            "Total Purchase Cost (PKR)": ("total", "sum")}).reset_index().rename(columns={"product": "Product"})
+    else:
+        purch_g = pd.DataFrame(columns=["Product", "Total Qty Purchased", "Total Purchase Cost (PKR)"])
+
     recap_df = recap_df.merge(purch_g, on="Product", how="left").fillna(0)
     recap_df["Weighted Avg Cost/Unit (PKR)"] = recap_df.apply(lambda r: (r["Total Purchase Cost (PKR)"] / r["Total Qty Purchased"]) if r["Total Qty Purchased"] else 0, axis=1)
     recap_df["Remaining Stock (Qty)"] = recap_df["Total Qty Purchased"] - recap_df["Total Qty Sold"]
     recap_df["Remaining Stock Value (PKR)"] = recap_df["Remaining Stock (Qty)"] * recap_df["Weighted Avg Cost/Unit (PKR)"]
     recap_df["Margin %"] = recap_df.apply(lambda r: (r["Total Profit (PKR)"] / r["Total Revenue (PKR)"] * 100) if r["Total Revenue (PKR)"] else 0, axis=1)
-    recap_df = recap_df[["Product", "Total Qty Purchased", "Total Purchase Cost (PKR)", "Weighted Avg Cost/Unit (PKR)", "Total Qty Sold", "Remaining Stock (Qty)", "Remaining Stock Value (PKR)", "Total Revenue (PKR)", "Total COGS (PKR)", "Total Profit (PKR)", "Margin %"]]
-summary_dict = {"capital": total_inv_amt, "revenue": total_rev, "gross_profit": gross_profit, "margin": gross_margin, "purchase_cost": total_purch_cost, "expenses": total_exp, "cash": cash_on_hand, "stock_value": stock_value, "outstanding": total_out, "received": total_received, "withdrawn": total_wd}
+    recap_df = recap_df[["Product", "Total Qty Purchased", "Total Purchase Cost (PKR)", "Weighted Avg Cost/Unit (PKR)", "Total Qty Sold", "Remaining Stock (Qty)", "Remaining Stock Value (PKR)", "Total Revenue (PKR)", "Total Profit (PKR)", "Margin %"]]
 
 if menu == "Dashboard":
     bar("NESCO Distributors - Business Dashboard")
